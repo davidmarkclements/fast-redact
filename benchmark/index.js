@@ -13,8 +13,8 @@ const redactIntermediateWild = fastRedact({paths: ['a.*.c']})
 const obj = {
   a: {
     b: {
-      c: 's',
-    }, 
+      c: 's'
+    },
     d: {
       a: 's',
       b: 's',

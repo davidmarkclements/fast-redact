@@ -26,9 +26,9 @@ function fastRedact (opts = {}) {
 
   validate({paths, serialize, censor})
 
-  const { wildcards, wcLen, secret } =  parse({paths, censor})
+  const { wildcards, wcLen, secret } = parse({paths, censor})
 
-  const compileRestore = restorer({secret, wcLen})  
+  const compileRestore = restorer({secret, wcLen})
 
   return redactor({secret, wcLen, serialize}, state({
     secret,
@@ -41,4 +41,3 @@ function fastRedact (opts = {}) {
     wcLen
   }))
 }
-
