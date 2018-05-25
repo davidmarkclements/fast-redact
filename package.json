@@ -1,0 +1,20 @@
+{
+  "name": "fast-redact",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "tap test",
+    "cov": "tap --cov test",
+    "cov-ui": "tap --coverage-report=html test"
+  },
+  "keywords": [],
+  "author": "David Mark Clements <david.clements@nearform.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "fastbench": "^1.0.1",
+    "pino-noir": "^2.2.1",
+    "tap": "^12.0.1"
+  },
+  "dependencies": {}
+}
