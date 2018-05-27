@@ -108,6 +108,24 @@ test('throws when passed illegal paths', ({end, is, throws}) => {
   throws((e) => {
     fastRedact({paths: ['a.b*.c']})
   }, err('a.b*.c'))
+  throws((e) => {
+    fastRedact({paths: ['a;global.foo = "bar"']})
+  }, err('a;global.foo = "bar"'))
+  throws((e) => {
+    fastRedact({paths: ['a;while(1){}']})
+  }, err('a;while(1){}'))
+  throws((e) => {
+    fastRedact({paths: ['a//']})
+  }, err('a//'))
+  throws((e) => {
+    fastRedact({paths: ['a/*foo*/']})
+  }, err('a/*foo*/'))
+  throws((e) => {
+    fastRedact({paths: ['a,o.b']})
+  }, err('a,o.b'))
+  throws((e) => {
+    fastRedact({paths: ['a = o.b']})
+  }, err('a = o.b'))
   end()
 })
 
@@ -159,7 +177,7 @@ test('serializes with custom serializer if supplied', ({end, is}) => {
   end()
 })
 
-test('redacts nested keys', ({end, is}) => {
+test('redacts parent keys', ({end, is}) => {
   const redact = fastRedact({paths: ['a.b.c'], serialize: false})
   const result = redact({a: {b: {c: 's'}, d: {a: 's', b: 's', c: 's'}}})
   is(result.a.b.c, censor)
@@ -233,7 +251,7 @@ test('allows * within a bracket notation string', ({end, is}) => {
   end()
 })
 
-test('redacts nested keys – restore', ({end, is}) => {
+test('redacts parent keys – restore', ({end, is}) => {
   const redact = fastRedact({paths: ['a.b.c'], serialize: false})
   const result = redact({a: {b: {c: 's'}, d: {a: 's', b: 's', c: 's'}}})
   is(result.a.b.c, censor)
@@ -453,7 +471,17 @@ test('static + wildcards reuse', ({end, is}) => {
   end()
 })
 
-test('nested wildcard – one level after', ({end, is}) => {
+test('parent wildcard – first position', ({end, is}) => {
+  const redact = fastRedact({paths: ['*.c'], serialize: false})
+  const result = redact({b: {c: 's'}, d: {a: 's', b: 's', c: 's'}})
+  is(result.b.c, censor)
+  is(result.d.a, 's')
+  is(result.d.b, 's')
+  is(result.d.c, censor)
+  end()
+})
+
+test('parent wildcard – one following key', ({end, is}) => {
   const redact = fastRedact({paths: ['a.*.c'], serialize: false})
   const result = redact({a: {b: {c: 's'}, d: {a: 's', b: 's', c: 's'}}})
   is(result.a.b.c, censor)
@@ -463,7 +491,7 @@ test('nested wildcard – one level after', ({end, is}) => {
   end()
 })
 
-test('restore nested wildcard  – one level after', ({end, is}) => {
+test('restore parent wildcard  – one following key', ({end, is}) => {
   const redact = fastRedact({paths: ['a.*.c'], serialize: false})
   const result = redact({a: {b: {c: 's'}, d: {a: 's', b: 's', c: 's'}}})
   redact.restore(result)
@@ -474,7 +502,7 @@ test('restore nested wildcard  – one level after', ({end, is}) => {
   end()
 })
 
-test('nested wildcard – one level after – reuse', ({end, is}) => {
+test('parent wildcard – one following key – reuse', ({end, is}) => {
   const redact = fastRedact({paths: ['a.*.c'], serialize: false})
   const result = redact({a: {b: {c: 's'}, d: {a: 's', b: 's', c: 's'}}})
   is(result.a.b.c, censor)
@@ -490,7 +518,7 @@ test('nested wildcard – one level after – reuse', ({end, is}) => {
   end()
 })
 
-test('nested wildcard – two levels after', ({end, is}) => {
+test('parent wildcard – two following keys', ({end, is}) => {
   const redact = fastRedact({paths: ['a.*.x.c'], serialize: false})
   const result = redact({a: {b: {x: {c: 's'}}, d: {x: {a: 's', b: 's', c: 's'}}}})
   is(result.a.b.x.c, censor)
@@ -500,7 +528,7 @@ test('nested wildcard – two levels after', ({end, is}) => {
   end()
 })
 
-test('nested wildcard  – two levels after – reuse', ({end, is}) => {
+test('parent wildcard  – two following keys – reuse', ({end, is}) => {
   const redact = fastRedact({paths: ['a.*.x.c'], serialize: false})
   const result = redact({a: {b: {x: {c: 's'}}, d: {x: {a: 's', b: 's', c: 's'}}}})
   is(result.a.b.x.c, censor)
@@ -516,7 +544,7 @@ test('nested wildcard  – two levels after – reuse', ({end, is}) => {
   end()
 })
 
-test('restore nested wildcard  – two levels after', ({end, is}) => {
+test('restore parent wildcard  – two following keys', ({end, is}) => {
   const redact = fastRedact({paths: ['a.*.x.c'], serialize: false})
   const result = redact({a: {b: {x: {c: 's'}}, d: {x: {a: 's', b: 's', c: 's'}}}})
   redact.restore(result)
@@ -527,7 +555,7 @@ test('restore nested wildcard  – two levels after', ({end, is}) => {
   end()
 })
 
-test('nested wildcard - array', ({end, is}) => {
+test('parent wildcard - array', ({end, is}) => {
   const redact = fastRedact({paths: ['a.b[*].x'], serialize: false})
   const result = redact({a: {b: [{x: 1}, {a: 2}], d: {a: 's', b: 's', c: 's'}}})
   is(result.a.b[0].x, censor)
@@ -537,26 +565,26 @@ test('nested wildcard - array', ({end, is}) => {
   end()
 })
 
-test('nested wildcards – array – single index', ({end, same}) => {
+test('parent wildcards – array – single index', ({end, same}) => {
   const redact = fastRedact({paths: ['insideArray.like[3].*.foo'], serialize: false})
   same(redact({insideArray: {like: ['a', 'b', 'c', {this: {foo: 'meow'}}]}}), {insideArray: {like: ['a', 'b', 'c', {this: {foo: censor}}]}})
   end()
 })
 
-test('nested wildcards - handles null proto objects', ({end, is}) => {
+test('parent wildcards - handles null proto objects', ({end, is}) => {
   const redact = fastRedact({paths: ['a.*.c'], serialize: false})
   const result = redact({__proto__: null, a: {b: {c: 's'}, d: {a: 's', b: 's', c: 's'}}})
   is(result.a.b.c, censor)
   end()
 })
 
-test('nested wildcards - handles paths that do not match object structure', ({end, same}) => {
+test('parent wildcards - handles paths that do not match object structure', ({end, same}) => {
   const redact = fastRedact({paths: ['a.*.y.z'], serialize: false})
   same(redact({a: {b: {c: 's'}}}), {a: {b: {c: 's'}}})
   end()
 })
 
-test('nested wildcards - gracefully handles primitives that match intermediate keys in paths', ({end, same}) => {
+test('parent wildcards - gracefully handles primitives that match intermediate keys in paths', ({end, same}) => {
   const redact = fastRedact({paths: ['a.*.c'], serialize: false})
   same(redact({a: {b: null}}), {a: {b: null}})
   same(redact({a: {b: 's'}}), {a: {b: 's'}})
@@ -568,7 +596,7 @@ test('nested wildcards - gracefully handles primitives that match intermediate k
   end()
 })
 
-test('nested wildcards – handles circulars', ({end, is, same}) => {
+test('parent wildcards – handles circulars', ({end, is, same}) => {
   const redact = fastRedact({paths: ['x.*.baz'], serialize: false})
   const bar = {b: 2}
   const o = {x: {a: 1, bar}}
@@ -578,7 +606,7 @@ test('nested wildcards – handles circulars', ({end, is, same}) => {
   end()
 })
 
-test('nested wildcards – handles circulars – restore', ({end, is, same}) => {
+test('parent wildcards – handles circulars – restore', ({end, is, same}) => {
   const redact = fastRedact({paths: ['x.*.baz'], serialize: false})
   const bar = {b: 2}
   const o = {x: {a: 1, bar}}
@@ -593,7 +621,7 @@ test('nested wildcards – handles circulars – restore', ({end, is, same}) =>
   end()
 })
 
-test('nested wildcards – handles circulars and cross references – restore', ({end, is, same}) => {
+test('parent wildcards – handles circulars and cross references – restore', ({end, is, same}) => {
   const redact = fastRedact({paths: ['x.*.baz', 'x.*.cf.bar'], serialize: false})
   const bar = {b: 2}
   const o = {x: {a: 1, bar, y: {cf: {bar}}}}
@@ -610,7 +638,7 @@ test('nested wildcards – handles circulars and cross references – restore',
   end()
 })
 
-test('nested wildcards – handles missing paths', ({end, is, same}) => {
+test('parent wildcards – handles missing paths', ({end, is, same}) => {
   const redact = fastRedact({paths: ['z.*.baz']})
   const o = {a: {b: {c: 's'}, d: {a: 's', b: 's', c: 's'}}}
   is(redact(o), JSON.stringify(o))
