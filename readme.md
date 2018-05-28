@@ -85,6 +85,20 @@ console.log(redact(obj))
 // {"a":[{"c":{"d":"[REDACTED]","e":"leave me be"}},{"c":{"d":"[REDACTED]","f":"I want to live"}},{"c":{"d":"[REDACTED]","g":"I want to run in a stream"}}]}
 ```
 
+#### `remove` - `Boolean` - `[false]`
+
+The `remove` option, when set to `true` will cause keys to be removed from the 
+serialized output. 
+
+Since the implementation exploits the fact the `undefined` keys are ignored
+by `JSON.stringify` the `remove` option may *only* be used when `JSON.stringify`
+is the serializer (this is the default) – otherwise `fast-redact` will throw. 
+
+If supplying a custom serializer that has the same behavior (removing keys 
+with `undefined` values), this restriction can be bypassed by explicitly setting 
+the `censor` to `undefined`.
+
+
 #### `censor` – `<Any type - Except Function>` – `('[REDACTED]')`
 
 This is the value which overwrites redacted properties. It can be any type, 

@@ -132,7 +132,21 @@ test('throws when passed illegal paths', ({end, is, throws}) => {
 test('throws if more than one wildcard in a path', ({end, throws}) => {
   throws(() => {
     fastRedact({paths: ['a.*.x.*'], serialize: false})
-  }, Error('Only one wildcard per path is supported'))
+  }, Error('fast-redact – Only one wildcard per path is supported'))
+  end()
+})
+
+test('throws if a custom serializer is used and remove is true', ({end, throws}) => {
+  throws(() => {
+    fastRedact({paths: ['a'], serialize: (o) => o, remove: true})
+  }, Error('fast-redact – remove option may only be set when serializer is JSON.stringify'))
+  end()
+})
+
+test('throws if serialize is false and remove is true', ({end, throws}) => {
+  throws(() => {
+    fastRedact({paths: ['a'], serialize: false, remove: true})
+  }, Error('fast-redact – remove option may only be set when serializer is JSON.stringify'))
   end()
 })
 
@@ -165,6 +179,15 @@ test('serializes with JSON.stringify by default', ({end, is}) => {
   const redact = fastRedact({paths: ['a']})
   const o = {a: 'a'}
   is(redact(o), `{"a":"${censor}"}`)
+  is(o.a, 'a')
+  end()
+})
+
+
+test('removes during serialization instead of redacting when remove option is true', ({end, is}) => {
+  const redact = fastRedact({paths: ['a'], remove: true})
+  const o = {a: 'a', b: 'b'}
+  is(redact(o), `{"b":"b"}`)
   is(o.a, 'a')
   end()
 })

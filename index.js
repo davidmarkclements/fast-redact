@@ -23,7 +23,13 @@ function fastRedact (opts = {}) {
     opts.serialize === false ? opts.serialize :
       (typeof opts.serialize === 'function' ? opts.serialize : JSON.stringify) 
   ) : JSON.stringify
-  const censor = 'censor' in opts ? opts.censor : DEFAULT_CENSOR
+  const remove = opts.remove
+  if (remove === true && serialize !== JSON.stringify) {
+    throw Error('fast-redact – remove option may only be set when serializer is JSON.stringify')
+  }
+  const censor = remove === true ? 
+    undefined : 
+    'censor' in opts ? opts.censor : DEFAULT_CENSOR
 
   if (paths.length === 0) return serialize || noop
 
