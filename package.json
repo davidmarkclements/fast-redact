@@ -6,7 +6,8 @@
   "scripts": {
     "test": "tap test",
     "cov": "tap --cov test",
-    "cov-ui": "tap --coverage-report=html test"
+    "cov-ui": "tap --coverage-report=html test",
+    "ci": "tap --cov --100 test"
   },
   "keywords": [],
   "author": "David Mark Clements <david.clements@nearform.com>",
