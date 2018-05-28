@@ -1,7 +1,7 @@
 {
   "name": "fast-redact",
   "version": "1.0.0",
-  "description": "",
+  "description": "very fast object redaction",
   "main": "index.js",
   "scripts": {
     "test": "tap test",
@@ -10,7 +10,17 @@
     "ci": "tap --cov --100 test",
     "bench": "node benchmark"
   },
-  "keywords": ["redact", "censor", "performance", "performant", "gdpr", "fast", "speed", "serialize", "stringify"],
+  "keywords": [
+    "redact",
+    "censor",
+    "performance",
+    "performant",
+    "gdpr",
+    "fast",
+    "speed",
+    "serialize",
+    "stringify"
+  ],
   "author": "David Mark Clements <david.clements@nearform.com>",
   "license": "MIT",
   "devDependencies": {
@@ -18,9 +28,12 @@
     "pino-noir": "^2.2.1",
     "tap": "^12.0.1"
   },
-  "engines" : { "node" : ">=6" }, 
+  "engines": {
+    "node": ">=6"
+  },
   "dependencies": {},
   "directories": {
+    "example": "example",
     "lib": "lib",
     "test": "test"
   },
