@@ -28,7 +28,7 @@ console.log(redact(fauxRequest))
 
 ## API
 
-### `require('fast-redact')({paths, censor, serialize})`
+### `require('fast-redact')({paths, censor, serialize}) => Function`
 
 When called without any options, or with a zero length `paths` array, 
 `fast-redact` will return  `JSON.stringify` or the `serialize` option, if set.
@@ -137,6 +137,40 @@ console.log(o) // { a: '[REDACTED]', b: 2 }
 console.log(redact.restore(o) === o) // true
 console.log(o) // { a: 1, b: 2 }
 ```
+
+## Approach
+
+In order to achieve lowest cost/highest performance redaction `fast-redact`
+creates and compiles a function (using the `Function` constructor) on initialization.
+It's important to distinguish this from the dangers of a runtime eval, no user input 
+is involved in creating the string that compiles into the function. This is as safe 
+as writing code normally and having it compiled by V8 in the usual way.
+
+Thanks to changes in V8 in recent years, state can be injected into compiled functions
+using `bind` at very low cost (whereas `bind` used to be expensive, and getting state
+into a compiled function by any means was difficult without a performance penalty).
+
+For static paths, this function simply checks that the path exists and then overwrites
+with the censor. Wildcard paths are processed with normal functions that iterate over 
+the object redacting values as necessary.
+
+It's important to note, that the original object is mutated – for performance reasons
+a copy is not made. See [rfdc](https://github.com/davidmarkclements/rfdc) (Really Fast 
+Deep Clone) for the fastest known way to clone – it's not nearly close enough  in speed
+to editing the original object, serializing and then restoring values. 
+
+A `restore` function is also created and compiled to put the original state back on
+to the object after redaction. This means that in the default usage case, the operation 
+is essentially atomic - the object is mutated, serialized and restored internally which 
+avoids any state management issues.
+
+## Caveat
+
+As mentioned in approach, the `paths` array input is dynamically compiled into a function
+at initialization time. While the `paths` array is vigourously tested for any developer 
+errors, it's strongly recommended against allowing user input to directly supply any 
+paths to redact. It can't be guaranteed that allowing user input for `paths` couldn't
+feasibly expose an attack vector.  
 
 ## Benchmarks
 
