@@ -169,6 +169,22 @@ test('serializes with JSON.stringify by default', ({end, is}) => {
   end()
 })
 
+test('serializes with JSON.stringify if serialize is true', ({end, is}) => {
+  const redact = fastRedact({paths: ['a'], serialize: true})
+  const o = {a: 'a'}
+  is(redact(o), `{"a":"${censor}"}`)
+  is(o.a, 'a')
+  end()
+})
+
+test('serializes with JSON.stringify if serialize is not a function', ({end, is}) => {
+  const redact = fastRedact({paths: ['a'], serialize: {}})
+  const o = {a: 'a'}
+  is(redact(o), `{"a":"${censor}"}`)
+  is(o.a, 'a')
+  end()
+})
+
 test('serializes with custom serializer if supplied', ({end, is}) => {
   const redact = fastRedact({paths: ['a'], serialize: (o) => JSON.stringify(o, 0, 2)})
   const o = {a: 'a'}

@@ -19,7 +19,10 @@ module.exports = fastRedact
 
 function fastRedact (opts = {}) {
   const paths = Array.from(new Set(opts.paths || []))
-  const serialize = 'serialize' in opts ? opts.serialize : JSON.stringify
+  const serialize = 'serialize' in opts ? (
+    opts.serialize === false ? opts.serialize :
+      (typeof opts.serialize === 'function' ? opts.serialize : JSON.stringify) 
+  ) : JSON.stringify
   const censor = 'censor' in opts ? opts.censor : DEFAULT_CENSOR
 
   if (paths.length === 0) return serialize || noop
