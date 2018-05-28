@@ -16,5 +16,17 @@
     "pino-noir": "^2.2.1",
     "tap": "^12.0.1"
   },
-  "dependencies": {}
+  "dependencies": {},
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davidmarkclements/fast-redact.git"
+  },
+  "bugs": {
+    "url": "https://github.com/davidmarkclements/fast-redact/issues"
+  },
+  "homepage": "https://github.com/davidmarkclements/fast-redact#readme"
 }
