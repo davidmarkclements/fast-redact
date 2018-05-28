@@ -8,7 +8,7 @@ const { groupRedact, nestedRedact } = require('./lib/modifiers')
 const state = require('./lib/state')
 const rx = require('./lib/rx')
 const validate = validator()
-const noop = (o) => o 
+const noop = (o) => o
 noop.restore = noop
 
 const DEFAULT_CENSOR = '[REDACTED]'
@@ -41,4 +41,3 @@ function fastRedact (opts = {}) {
     wcLen
   }))
 }
-
