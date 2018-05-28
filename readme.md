@@ -90,7 +90,7 @@ console.log(redact(obj))
 The `remove` option, when set to `true` will cause keys to be removed from the 
 serialized output. 
 
-Since the implementation exploits the fact the `undefined` keys are ignored
+Since the implementation exploits the fact that `undefined` keys are ignored
 by `JSON.stringify` the `remove` option may *only* be used when `JSON.stringify`
 is the serializer (this is the default) – otherwise `fast-redact` will throw. 
 
