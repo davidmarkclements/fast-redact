@@ -229,7 +229,7 @@ npm test
 ```
 
 ```
-  190 passing (569.525ms)
+  194 passing (450.351ms)
 ```
 
 ### Coverage
