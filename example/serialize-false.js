@@ -1,7 +1,7 @@
 'use strict'
 const fastRedact = require('..')
 const redact = fastRedact({
-  paths: ['a'], 
+  paths: ['a'],
   serialize: false
 })
 const o = {a: 1, b: 2}

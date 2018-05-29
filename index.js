@@ -20,16 +20,16 @@ module.exports = fastRedact
 function fastRedact (opts = {}) {
   const paths = Array.from(new Set(opts.paths || []))
   const serialize = 'serialize' in opts ? (
-    opts.serialize === false ? opts.serialize :
-      (typeof opts.serialize === 'function' ? opts.serialize : JSON.stringify) 
+    opts.serialize === false ? opts.serialize
+      : (typeof opts.serialize === 'function' ? opts.serialize : JSON.stringify)
   ) : JSON.stringify
   const remove = opts.remove
   if (remove === true && serialize !== JSON.stringify) {
     throw Error('fast-redact – remove option may only be set when serializer is JSON.stringify')
   }
-  const censor = remove === true ? 
-    undefined : 
-    'censor' in opts ? opts.censor : DEFAULT_CENSOR
+  const censor = remove === true
+    ? undefined
+    : 'censor' in opts ? opts.censor : DEFAULT_CENSOR
 
   if (paths.length === 0) return serialize || noop
 

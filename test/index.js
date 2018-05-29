@@ -186,7 +186,6 @@ test('serializes with JSON.stringify by default', ({end, is}) => {
   end()
 })
 
-
 test('removes during serialization instead of redacting when remove option is true', ({end, is}) => {
   const redact = fastRedact({paths: ['a'], remove: true})
   const o = {a: 'a', b: 'b'}

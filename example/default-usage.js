@@ -12,4 +12,3 @@ const redact = fastRedact({
 })
 
 console.log(redact(fauxRequest))
-

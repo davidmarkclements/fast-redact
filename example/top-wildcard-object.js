@@ -6,4 +6,4 @@ const obj = {
   y: {c: {d: 'and me', f: 'I want to live'}},
   z: {c: {d: 'and also I', g: 'I want to run in a stream'}}
 }
-console.log(redact(obj)) 
+console.log(redact(obj))
