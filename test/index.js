@@ -129,6 +129,9 @@ test('throws when passed illegal paths', ({end, is, throws}) => {
   throws((e) => {
     fastRedact({paths: ['a\n']})
   }, err('a\n'))
+  throws((e) => {
+    fastRedact({paths: ['a\r']})
+  }, err('a\r'))
   end()
 })
 
