@@ -327,10 +327,22 @@ test('handles paths that do not match object structure', ({end, same}) => {
 })
 
 test('ignores missing paths in object', ({end, same}) => {
-  const redact = fastRedact({paths: ['a.b.c', 'a.z', 'a.b.z'], serialize: false})
+  const redact = fastRedact({paths: ['a.b.c', 'a.z.d', 'a.b.z'], serialize: false})
   same(redact({a: {b: {c: 's'}}}), {a: {b: {c: censor}}})
   end()
 })
+
+test('ignores missing paths in object – restore', ({end, doesNotThrow}) => {
+  const redact = fastRedact({paths: ['a.b.c', 'a.z.d', 'a.b.z'], serialize: false})
+  const o = {a: {b: {c: 's'}}}
+  redact(o)
+  doesNotThrow(() => {
+    redact.restore(o)   
+  })
+
+  end()
+})
+
 
 test('gracefully handles primitives that match intermediate keys in paths', ({end, same}) => {
   const redact = fastRedact({paths: ['a.b.c', 'a.b.c.d'], serialize: false})
