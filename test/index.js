@@ -707,3 +707,17 @@ test('ultimate wildcards – handles missing paths', ({end, is, same}) => {
   is(redact(o), JSON.stringify(o))
   end()
 })
+
+test('parent wildcards – removes during serialization instead of redacting when remove option is true', ({end, is}) => {
+  const redact = fastRedact({paths: ['a.*.c'], remove: true})
+  const o = {a: {b: {c: 'c'}, x: {c: 1}}}
+  is(redact(o), `{"a":{"b":{},"x":{}}}`)
+  end()
+})
+
+test('ultimate wildcards – removes during serialization instead of redacting when remove option is true', ({end, is}) => {
+  const redact = fastRedact({paths: ['a.b.*'], remove: true})
+  const o = {a: {b: {c: 'c'}, x: {c: 1}}}
+  is(redact(o), `{"a":{"b":{},"x":{"c":1}}}`)
+  end()
+})
