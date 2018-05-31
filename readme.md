@@ -191,35 +191,41 @@ feasibly expose an attack vector.
 The fastest known predecessor to `fast-redact` is the non-generic [`pino-noir`](http://npm.im/pino-noir) 
 library (which was also written by myself).
 
-In the direct calling case, `fast-redact` is over 25x faster than `pino-noir`, however a more realistic
+In the direct calling case, `fast-redact` is ~30x faster than `pino-noir`, however a more realistic
 comparison is overhead on `JSON.stringify`. 
 
-For a static redaction case (no wildcards) `pino-noir` adds ~28% overhead on top of `JSON.stringify`
-whereas `fast-redact` adds ~2% overhead.
+For a static redaction case (no wildcards) `pino-noir` adds ~25% overhead on top of `JSON.stringify`
+whereas `fast-redact` adds ~1% overhead.
 
-In the basic last-position wildcard case,`fast-redact` is ~5% faster than `pino-noir`, and 
-intermediate wildcard redaction (which `pino-noir` does not support) is still faster than 
-the `pino-noir` basic wildcard case. 
+In the basic last-position wildcard case,`fast-redact` is ~12% faster than `pino-noir`.
+
+The `pino-noir` module does not support intermediate wildcards, but `fast-redact` does,
+the cost of an intermediate wildcard that results in two keys over two nested objects 
+being redacted is about 25% overhead on `JSON.stringify`. The cost of an intermediate 
+wildcard that results in four keys across two objects being redacted is about 55% overhead 
+on `JSON.stringify` and ~50% more expensive that explicitly declaring the keys.  
 
 ```sh
 npm run bench 
 ```
 
 ```
-benchNoirV2*500: 52.387ms
-benchFastRedact*500: 2.361ms
-benchFastRedactRestore*500: 13.715ms
-benchNoirV2Wild*500: 75.820ms
-benchFastRedactWild*500: 29.813ms
-benchFastRedactWildRestore*500: 36.182ms
-benchFastRedactIntermediateWild*500: 185.323ms
-benchFastRedactIntermediateWildRestore*500: 73.520ms
-benchJSONStringify*500: 268.861ms
-benchNoirV2Serialize*500: 372.731ms
-benchFastRedactSerialize*500: 273.265ms
-benchNoirV2WildSerialize*500: 330.679ms
-benchFastRedactWildSerialize*500: 312.374ms
-benchFastRedactIntermediateWildSerialize*500: 325.921ms
+benchNoirV2*500: 59.108ms
+benchFastRedact*500: 2.483ms
+benchFastRedactRestore*500: 10.904ms
+benchNoirV2Wild*500: 91.399ms
+benchFastRedactWild*500: 21.200ms
+benchFastRedactWildRestore*500: 27.304ms
+benchFastRedactIntermediateWild*500: 92.304ms
+benchFastRedactIntermediateWildRestore*500: 107.047ms
+benchJSONStringify*500: 210.573ms
+benchNoirV2Serialize*500: 281.148ms
+benchFastRedactSerialize*500: 215.845ms
+benchNoirV2WildSerialize*500: 281.168ms
+benchFastRedactWildSerialize*500: 247.140ms
+benchFastRedactIntermediateWildSerialize*500: 333.722ms
+benchFastRedactIntermediateWildMatchWildOutcomeSerialize*500: 463.667ms
+benchFastRedactStaticMatchWildOutcomeSerialize*500: 239.293ms
 ```
 
 ## Tests
@@ -229,7 +235,7 @@ npm test
 ```
 
 ```
-  197 passing (455.646ms)
+  199 passing (453.186ms)
 ```
 
 ### Coverage

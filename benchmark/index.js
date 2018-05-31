@@ -9,6 +9,8 @@ const redact = fastRedact({paths: ['a.b.c']})
 const noirWild = require('pino-noir')(['a.b.*'])
 const redactWild = fastRedact({paths: ['a.b.*']})
 const redactIntermediateWild = fastRedact({paths: ['a.*.c']})
+const redactIntermediateWildMatchWildOutcome = fastRedact({paths: ['a.*.c', 'a.*.b', 'a.*.a']})
+const redactStaticMatchWildOutcome = fastRedact({paths: ['a.b.c', 'a.d.a', 'a.d.b', 'a.d.c']})
 
 const obj = {
   a: {
@@ -112,6 +114,18 @@ var run = bench([
   function benchFastRedactIntermediateWildSerialize (cb) {
     for (var i = 0; i < max; i++) {
       redactIntermediateWild(obj)
+    }
+    setImmediate(cb)
+  },
+  function benchFastRedactIntermediateWildMatchWildOutcomeSerialize (cb) {
+    for (var i = 0; i < max; i++) {
+      redactIntermediateWildMatchWildOutcome(obj)
+    }
+    setImmediate(cb)
+  },
+  function benchFastRedactStaticMatchWildOutcomeSerialize (cb) {
+    for (var i = 0; i < max; i++) {
+      redactStaticMatchWildOutcome(obj)
     }
     setImmediate(cb)
   }
