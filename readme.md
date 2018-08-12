@@ -43,6 +43,8 @@ each of the following cases, the `c` property will be redacted: `a.b.c`,`a['b'].
 `a["b"].c`, `a[``b``].c`. Since bracket notation is supported, array indices are also
 supported `a[0].b` would redact the `b` key in the first object of the `a` array. 
 
+Leading brackets are also allowed, for instance `["a"].b.c` will work.
+
 ##### Wildcards
 
 In addition to static paths, asterisk wildcards are also supported.
@@ -235,7 +237,7 @@ npm test
 ```
 
 ```
-  199 passing (453.186ms)
+  224 passing (499.544ms)
 ```
 
 ### Coverage

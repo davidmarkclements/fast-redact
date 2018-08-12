@@ -337,12 +337,11 @@ test('ignores missing paths in object – restore', ({end, doesNotThrow}) => {
   const o = {a: {b: {c: 's'}}}
   redact(o)
   doesNotThrow(() => {
-    redact.restore(o)   
+    redact.restore(o)
   })
 
   end()
 })
-
 
 test('gracefully handles primitives that match intermediate keys in paths', ({end, same}) => {
   const redact = fastRedact({paths: ['a.b.c', 'a.b.c.d'], serialize: false})
@@ -719,5 +718,95 @@ test('ultimate wildcards – removes during serialization instead of redacting 
   const redact = fastRedact({paths: ['a.b.*'], remove: true})
   const o = {a: {b: {c: 'c'}, x: {c: 1}}}
   is(redact(o), `{"a":{"b":{},"x":{"c":1}}}`)
+  end()
+})
+
+test('supports leading bracket notation', ({end, is}) => {
+  const redact = fastRedact({paths: ['["a"].b.c']})
+  const o = {a: {b: {c: 'd'}}}
+  is(redact(o), `{"a":{"b":{"c":"${censor}"}}}`)
+  end()
+})
+
+test('supports leading bracket notation containing non-legal keyword characters', ({end, is}) => {
+  const redact = fastRedact({paths: ['["a-x"].b.c']})
+  const o = {'a-x': {b: {c: 'd'}}}
+  is(redact(o), `{"a-x":{"b":{"c":"${censor}"}}}`)
+  end()
+})
+
+test('supports single leading bracket', ({end, is}) => {
+  const censor = 'test'
+  const redact = fastRedact({paths: ['["a"]'], censor, serialize: false})
+  is(redact({a: 'a'}).a, censor)
+  end()
+})
+
+test('supports single leading bracket containing non-legal keyword characters', ({end, is}) => {
+  const censor = 'test'
+  const redact = fastRedact({paths: ['["a-x"]'], censor, serialize: false})
+  is(redact({'a-x': 'a'})['a-x'], censor)
+  end()
+})
+
+test('(leading brackets) ultimate wildcards – handles circulars and cross references – restore', ({end, is, same}) => {
+  const redact = fastRedact({paths: ['bar.baz.*', 'cf.*'], serialize: false})
+  const bar = {b: 2}
+  const o = {a: 1, bar, cf: {bar}}
+  bar.baz = bar
+  o.bar.baz = o.bar
+  is(o.bar.baz, bar)
+  is(o.cf.bar, bar)
+  redact(o)
+  is(o.bar.baz, censor)
+  is(o.cf.bar, censor)
+  redact.restore(o)
+  is(o.bar.baz, bar)
+  is(o.cf.bar, bar)
+  end()
+})
+
+test('(leading brackets) parent wildcards – handles circulars and cross references – restore', ({end, is, same}) => {
+  const redact = fastRedact({paths: ['["x"].*.baz', '["x"].*.cf.bar'], serialize: false})
+  const bar = {b: 2}
+  const o = {x: {a: 1, bar, y: {cf: {bar}}}}
+  bar.baz = bar
+  o.x.bar.baz = o.x.bar
+  is(o.x.bar.baz, bar)
+  is(o.x.y.cf.bar, bar)
+  redact(o)
+  is(o.x.bar.baz, censor)
+  is(o.x.y.cf.bar, censor)
+  redact.restore(o)
+  is(o.x.bar.baz, bar)
+  is(o.x.y.cf.bar, bar)
+  end()
+})
+
+test('(leading brackets) ultimate wildcards – handles missing paths', ({end, is, same}) => {
+  const redact = fastRedact({paths: ['["z"].*']})
+  const o = {a: {b: {c: 's'}, d: {a: 's', b: 's', c: 's'}}}
+  is(redact(o), JSON.stringify(o))
+  end()
+})
+
+test('(leading brackets) static + wildcards reuse', ({end, is}) => {
+  const redact = fastRedact({paths: ['["a"].b.c', '["a"].d.*'], serialize: false})
+  const result = redact({a: {b: {c: 's'}, d: {a: 's', b: 's', c: 's'}}})
+
+  is(result.a.b.c, censor)
+  is(result.a.d.a, censor)
+  is(result.a.d.b, censor)
+  is(result.a.d.c, censor)
+
+  redact.restore(result)
+
+  const result2 = redact({a: {b: {c: 's'}, d: {a: 's', b: 's', c: 's'}}})
+  is(result2.a.b.c, censor)
+  is(result2.a.d.a, censor)
+  is(result2.a.d.b, censor)
+  is(result2.a.d.c, censor)
+
+  redact.restore(result2)
   end()
 })
