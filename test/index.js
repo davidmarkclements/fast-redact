@@ -725,7 +725,7 @@ test('ultimate wildcards – removes during serialization instead of redacting 
 test('supports leading bracket notation', ({end, is}) => {
   const redact = fastRedact({paths: ['["a"].b.c']})
   const o = {a: {b: {c: 'd'}}}
-  is(redact(o), `{"a":{"b":{"c":"${censor}]"}}}`)
+  is(redact(o), `{"a":{"b":{"c":"${censor}"}}}`)
   end()
 })
 
@@ -733,6 +733,6 @@ test('supports leading bracket notation', ({end, is}) => {
 test('supports leading bracket notation containing non-legal keyword characters', ({end, is}) => {
   const redact = fastRedact({paths: ['["a-x"].b.c']})
   const o = {'a-x': {b: {c: 'd'}}}
-  is(redact(o), `{"a-x":{"b":{"c":"${censor}]"}}}`)
+  is(redact(o), `{"a-x":{"b":{"c":"${censor}"}}}`)
   end()
 })
