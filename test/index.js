@@ -21,9 +21,12 @@ test('returns serializer when passed no paths [serialize: default]', ({end, is})
   end()
 })
 
-test('throws when passed non-object', ({end, throws}) => {
-  const redact = fastRedact({paths: ['a.b.c'], serialize: false})
-  throws(() => redact(1))
+test('returns original value when passed non-object', ({end, is, doesNotThrow}) => {
+  const censor = 'test'
+  const redact = fastRedact({paths: ['a.b.c']})
+  doesNotThrow(() => redact(1))
+  const o = redact(1)
+  is(o, 1)
   end()
 })
 
