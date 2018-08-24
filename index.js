@@ -40,7 +40,7 @@ function fastRedact (opts = {}) {
   const compileRestore = restorer({secret, wcLen})
   const strict = 'strict' in opts ? opts.strict : true
 
-  return redactor({secret, wcLen, serialize}, state({
+  return redactor({secret, wcLen, serialize, strict}, state({
     secret,
     censor,
     compileRestore,
@@ -49,6 +49,5 @@ function fastRedact (opts = {}) {
     nestedRedact,
     wildcards,
     wcLen,
-    strict
   }))
 }
