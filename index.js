@@ -48,6 +48,6 @@ function fastRedact (opts = {}) {
     groupRedact,
     nestedRedact,
     wildcards,
-    wcLen,
+    wcLen
   }))
 }
