@@ -154,6 +154,11 @@ console.log(redact.restore(o) === o) // true
 console.log(o) // { a: 1, b: 2 }
 ```
 
+#### `strict` – `Boolean` - `[true]`
+The `strict` option, when set to `true`, will cause the redactor function to throw if instead 
+of an object it finds a primitive. When `strict` is set to `false`, the redactor function 
+will return the primitive value without being redacted.
+
 ## Approach
 
 In order to achieve lowest cost/highest performance redaction `fast-redact`
