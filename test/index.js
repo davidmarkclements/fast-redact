@@ -826,7 +826,7 @@ test('(leading brackets) static + wildcards reuse', ({ end, is }) => {
 })
 
 test('correctly restores original object with nested null paths', ({ end, ok }) => {
-  const redact = fastRedact({ paths: ['foo.bar'] }, { strict: false })
+  const redact = fastRedact({ paths: ['foo.bar'], strict: false })
   const o = {}
   redact({ foo: o })
   ok(o.hasOwnProperty('bar') === false)
