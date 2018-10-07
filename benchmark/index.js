@@ -2,15 +2,15 @@
 const bench = require('fastbench')
 const noir = require('pino-noir')(['a.b.c'])
 const fastRedact = require('..')
-const redactNoSerialize = fastRedact({paths: ['a.b.c'], serialize: false})
-const redactWildNoSerialize = fastRedact({paths: ['a.b.*'], serialize: false})
-const redactIntermediateWildNoSerialize = fastRedact({paths: ['a.*.c'], serialize: false})
-const redact = fastRedact({paths: ['a.b.c']})
+const redactNoSerialize = fastRedact({ paths: ['a.b.c'], serialize: false })
+const redactWildNoSerialize = fastRedact({ paths: ['a.b.*'], serialize: false })
+const redactIntermediateWildNoSerialize = fastRedact({ paths: ['a.*.c'], serialize: false })
+const redact = fastRedact({ paths: ['a.b.c'] })
 const noirWild = require('pino-noir')(['a.b.*'])
-const redactWild = fastRedact({paths: ['a.b.*']})
-const redactIntermediateWild = fastRedact({paths: ['a.*.c']})
-const redactIntermediateWildMatchWildOutcome = fastRedact({paths: ['a.*.c', 'a.*.b', 'a.*.a']})
-const redactStaticMatchWildOutcome = fastRedact({paths: ['a.b.c', 'a.d.a', 'a.d.b', 'a.d.c']})
+const redactWild = fastRedact({ paths: ['a.b.*'] })
+const redactIntermediateWild = fastRedact({ paths: ['a.*.c'] })
+const redactIntermediateWildMatchWildOutcome = fastRedact({ paths: ['a.*.c', 'a.*.b', 'a.*.a'] })
+const redactStaticMatchWildOutcome = fastRedact({ paths: ['a.b.c', 'a.d.a', 'a.d.b', 'a.d.c'] })
 
 const obj = {
   a: {
