@@ -33,14 +33,14 @@ function fastRedact (opts = {}) {
 
   if (paths.length === 0) return serialize || noop
 
-  validate({paths, serialize, censor})
+  validate({ paths, serialize, censor })
 
-  const { wildcards, wcLen, secret } = parse({paths, censor})
+  const { wildcards, wcLen, secret } = parse({ paths, censor })
 
-  const compileRestore = restorer({secret, wcLen})
+  const compileRestore = restorer({ secret, wcLen })
   const strict = 'strict' in opts ? opts.strict : true
 
-  return redactor({secret, wcLen, serialize, strict}, state({
+  return redactor({ secret, wcLen, serialize, strict }, state({
     secret,
     censor,
     compileRestore,
