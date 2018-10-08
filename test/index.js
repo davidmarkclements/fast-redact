@@ -828,16 +828,16 @@ test('(leading brackets) static + wildcards reuse', ({ end, is }) => {
 test('correctly restores original object when a path does not match object', ({ end, is }) => {
   const redact = fastRedact({ paths: ['foo.bar'], strict: false })
   const o = {}
-  redact({ foo: o })
+  is(redact({ foo: o }), '{"foo":{}}')
   is(o.hasOwnProperty('bar'), false)
   end()
 })
 
 test('correctly restores original object when a matchin path has value of `undefined`', ({ end, is }) => {
   const redact = fastRedact({ paths: ['foo.bar'], strict: false })
-  const o = { foo: { bar: undefined } }
-  redact({ foo: o })
-  is(o.foo.hasOwnProperty('bar'), true)
-  is(o.foo.bar, undefined)
+  const o = { bar: undefined  }
+  is(redact({ foo: o }), '{"foo":{}}')
+  is(o.hasOwnProperty('bar'), true)
+  is(o.bar, undefined)
   end()
 })
