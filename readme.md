@@ -110,7 +110,7 @@ the behavior of the `serializer` – which defaults to `JSON.stringify`, which d
 remove `undefined` properties.
 
 Setting `censor` to a function will cause `fast-redact` to invoke it with the original 
-value. Funciton return will be used as redacted value.
+value. The output of the `censor` function sets the redacted value.
 Please note that asynchronous functions are not supported. 
 
 #### `serialize` – `Function | Boolean` – `(JSON.stringify)`
