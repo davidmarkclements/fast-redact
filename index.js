@@ -31,6 +31,8 @@ function fastRedact (opts = {}) {
     ? undefined
     : 'censor' in opts ? opts.censor : DEFAULT_CENSOR
 
+  const isCensorFct = typeof censor === 'function'
+
   if (paths.length === 0) return serialize || noop
 
   validate({ paths, serialize, censor })
@@ -43,6 +45,7 @@ function fastRedact (opts = {}) {
   return redactor({ secret, wcLen, serialize, strict }, state({
     secret,
     censor,
+    isCensorFct,
     compileRestore,
     serialize,
     groupRedact,

@@ -101,17 +101,17 @@ with `undefined` values), this restriction can be bypassed by explicitly setting
 the `censor` to `undefined`.
 
 
-#### `censor` – `<Any type - Except Function>` – `('[REDACTED]')`
+#### `censor` – `<Any type>` – `('[REDACTED]')`
 
-This is the value which overwrites redacted properties. It can be any type, 
-except a function. 
+This is the value which overwrites redacted properties. 
 
 Setting `censor` to `undefined` will cause properties to removed as long as this is 
 the behavior of the `serializer` – which defaults to `JSON.stringify`, which does 
 remove `undefined` properties.
 
-Supplying a function as a `censor` will cause `fast-redact` to throw. This means 
-a function censor to be introduced in the future without it being a breaking change. 
+Setting `censor` to a function will cause `fast-redact` to invoke it with the original 
+value. Funciton return will be used as redacted value.
+Please note that asynchronous functions are not supported. 
 
 #### `serialize` – `Function | Boolean` – `(JSON.stringify)`
 
