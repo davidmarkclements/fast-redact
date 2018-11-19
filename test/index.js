@@ -4,6 +4,7 @@ const { test } = require('tap')
 const fastRedact = require('..')
 
 const censor = '[REDACTED]'
+const censorFct = value => !value ? value : 'xxx' + value.substr(-2)
 
 test('returns no-op when passed no paths [serialize: false]', ({ end, doesNotThrow }) => {
   const redact = fastRedact({ paths: [], serialize: false })
@@ -195,6 +196,36 @@ test('redact.restore function places original values back in place', ({ end, is 
   end()
 })
 
+test('masks according to supplied censor function', ({ end, is }) => {
+  const redact = fastRedact({ paths: ['a'], censor: censorFct, serialize: false })
+  is(redact({ a: '0123456' }).a, 'xxx56')
+  end()
+})
+
+test('masks according to supplied censor function with wildcards', ({ end, is }) => {
+  const redact = fastRedact({ paths: '*', censor: censorFct, serialize: false })
+  is(redact({ a: '0123456' }).a, 'xxx56')
+  end()
+})
+
+test('masks according to supplied censor function with nested wildcards', ({ end, is }) => {
+  const redact = fastRedact({ paths: ['*.b'], censor: censorFct, serialize: false })
+  is(redact({ a: { b: '0123456' } }).a.b, 'xxx56')
+  is(redact({ c: { b: '0123456', d: 'pristine' } }).c.b, 'xxx56')
+  is(redact({ c: { b: '0123456', d: 'pristine' } }).c.d, 'pristine')
+  end()
+})
+
+test('redact.restore function places original values back in place with censor function', ({ end, is }) => {
+  const redact = fastRedact({ paths: ['a'], censor: censorFct, serialize: false })
+  const o = { a: 'qwerty' }
+  redact(o)
+  is(o.a, 'xxxty')
+  redact.restore(o)
+  is(o.a, 'qwerty')
+  end()
+})
+
 test('serializes with JSON.stringify by default', ({ end, is }) => {
   const redact = fastRedact({ paths: ['a'] })
   const o = { a: 'a' }
@@ -248,7 +279,7 @@ test('supports paths with array indexes', ({ end, same }) => {
   end()
 })
 
-test('censor may be any type, except function which will throw', ({ end, same, throws }) => {
+test('censor may be any type, including function', ({ end, same }) => {
   const redactToString = fastRedact({ paths: ['a.b.c', 'a.b.d.*'], censor: 'censor', serialize: false })
   const redactToUndefined = fastRedact({ paths: ['a.b.c', 'a.b.d.*'], censor: undefined, serialize: false })
   const sym = Symbol('sym')
@@ -260,6 +291,7 @@ test('censor may be any type, except function which will throw', ({ end, same, t
   const redactToArray = fastRedact({ paths: ['a.b.c', 'a.b.d.*'], censor: ['redacted'], serialize: false })
   const redactToBuffer = fastRedact({ paths: ['a.b.c', 'a.b.d.*'], censor: Buffer.from('redacted'), serialize: false })
   const redactToError = fastRedact({ paths: ['a.b.c', 'a.b.d.*'], censor: Error('redacted'), serialize: false })
+  const redactToFunction = fastRedact({ paths: ['a.b.c', 'a.b.d.*'], censor: () => 'redacted', serialize: false })
   same(redactToString({ a: { b: { c: 's', d: { x: 's', y: 's' } } } }), { a: { b: { c: 'censor', d: { x: 'censor', y: 'censor' } } } })
   same(redactToUndefined({ a: { b: { c: 's', d: { x: 's', y: 's' } } } }), { a: { b: { c: undefined, d: { x: undefined, y: undefined } } } })
   same(redactToSymbol({ a: { b: { c: 's', d: { x: 's', y: 's' } } } }), { a: { b: { c: sym, d: { x: sym, y: sym } } } })
@@ -270,7 +302,7 @@ test('censor may be any type, except function which will throw', ({ end, same, t
   same(redactToArray({ a: { b: { c: 's', d: { x: 's', y: 's' } } } }), { a: { b: { c: ['redacted'], d: { x: ['redacted'], y: ['redacted'] } } } })
   same(redactToBuffer({ a: { b: { c: 's', d: { x: 's', y: 's' } } } }), { a: { b: { c: Buffer.from('redacted'), d: { x: Buffer.from('redacted'), y: Buffer.from('redacted') } } } })
   same(redactToError({ a: { b: { c: 's', d: { x: 's', y: 's' } } } }), { a: { b: { c: Error('redacted'), d: { x: Error('redacted'), y: Error('redacted') } } } })
-  throws(() => fastRedact({ paths: ['a.b.c', 'a.b.d.*'], censor: () => {}, serialize: false }))
+  same(redactToFunction({ a: { b: { c: 's', d: { x: 's', y: 's' } } } }), { a: { b: { c: 'redacted', d: { x: 'redacted', y: 'redacted' } } } })
   end()
 })
 
@@ -835,7 +867,7 @@ test('correctly restores original object when a path does not match object', ({ 
 
 test('correctly restores original object when a matchin path has value of `undefined`', ({ end, is }) => {
   const redact = fastRedact({ paths: ['foo.bar'], strict: false })
-  const o = { bar: undefined  }
+  const o = { bar: undefined }
   is(redact({ foo: o }), '{"foo":{}}')
   is(o.hasOwnProperty('bar'), true)
   is(o.bar, undefined)

@@ -11,6 +11,8 @@ const redactWild = fastRedact({ paths: ['a.b.*'] })
 const redactIntermediateWild = fastRedact({ paths: ['a.*.c'] })
 const redactIntermediateWildMatchWildOutcome = fastRedact({ paths: ['a.*.c', 'a.*.b', 'a.*.a'] })
 const redactStaticMatchWildOutcome = fastRedact({ paths: ['a.b.c', 'a.d.a', 'a.d.b', 'a.d.c'] })
+const noirCensorFunction = require('pino-noir')(['a.b.*'], (v) => v + '.')
+const redactCensorFunction = fastRedact({ paths: ['a.b.*'], censor: (v) => v + '.', serialize: false })
 
 const obj = {
   a: {
@@ -126,6 +128,18 @@ var run = bench([
   function benchFastRedactStaticMatchWildOutcomeSerialize (cb) {
     for (var i = 0; i < max; i++) {
       redactStaticMatchWildOutcome(obj)
+    }
+    setImmediate(cb)
+  },
+  function benchNoirV2CensorFunction (cb) {
+    for (var i = 0; i < max; i++) {
+      noirCensorFunction.a(obj.a)
+    }
+    setImmediate(cb)
+  },
+  function benchFastRedactCensorFunction (cb) {
+    for (var i = 0; i < max; i++) {
+      redactCensorFunction(obj)
     }
     setImmediate(cb)
   }
