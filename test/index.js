@@ -865,11 +865,18 @@ test('correctly restores original object when a path does not match object', ({ 
   end()
 })
 
-test('correctly restores original object when a matchin path has value of `undefined`', ({ end, is }) => {
+test('correctly restores original object when a matching path has value of `undefined`', ({ end, is }) => {
   const redact = fastRedact({ paths: ['foo.bar'], strict: false })
   const o = { bar: undefined }
   is(redact({ foo: o }), '{"foo":{}}')
   is(o.hasOwnProperty('bar'), true)
   is(o.bar, undefined)
+  end()
+})
+
+test('handles multiple paths with leading brackets', ({ end, is }) => {
+  const redact = fastRedact({ paths: ['["x-y"]', '["y-x"]'] })
+  const o = { 'x-y': 'test', 'y-x': 'test2' }
+  is(redact(o), '{"x-y":"[REDACTED]","y-x":"[REDACTED]"}')
   end()
 })
