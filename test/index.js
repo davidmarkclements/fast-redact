@@ -880,3 +880,17 @@ test('handles multiple paths with leading brackets', ({ end, is }) => {
   is(redact(o), '{"x-y":"[REDACTED]","y-x":"[REDACTED]"}')
   end()
 })
+
+test('handles objects with and then without target paths', ({ end, is }) => {
+  const redact = fastRedact({ paths: ['test'] })
+  const o1 = { test: 'check' }
+  const o2 = {}
+  is(redact(o1), '{"test":"[REDACTED]"}')
+  is(redact(o2), '{}')
+  // run each check twice to ensure no mutations
+  is(redact(o1), '{"test":"[REDACTED]"}')
+  is(redact(o2), '{}')
+  is('test' in o1, true)
+  is('test' in o2, false)
+  end()
+})
