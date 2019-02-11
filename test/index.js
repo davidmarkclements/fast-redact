@@ -894,3 +894,11 @@ test('handles objects with and then without target paths', ({ end, is }) => {
   is('test' in o2, false)
   end()
 })
+
+test('handles leading wildcards and null values', ({ end, is }) => {
+  const redact = fastRedact({ paths: ['*.test'] })
+  const o = { prop: null }
+  is(redact(o), '{"prop":null}')
+  is(o.prop, null)
+  end()
+})
