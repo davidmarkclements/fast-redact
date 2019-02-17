@@ -28,17 +28,49 @@ test('throws when passed non-object using defaults', ({ end, throws }) => {
   end()
 })
 
-test('throws when passed non-object using [strict: true]', ({ end, throws }) => {
+test('throws when passed non-object number using [strict: true]', ({ end, throws }) => {
   const redact = fastRedact({ paths: ['a.b.c'], strict: true })
   throws(() => redact(1))
   end()
 })
 
-test('returns original value when passed non-object using [strict: false]', ({ end, is, doesNotThrow }) => {
+test('returns original value when passed non-object boolean using [strict: false]', ({ end, is, doesNotThrow }) => {
+  const redact = fastRedact({ paths: ['a.b.c'], strict: false })
+  doesNotThrow(() => redact(true))
+  const o = redact(true)
+  is(o, true)
+  end()
+})
+
+test('returns original value when passed non-object null using [strict: false]', ({ end, is, doesNotThrow }) => {
+  const redact = fastRedact({ paths: ['a.b.c'], strict: false })
+  doesNotThrow(() => redact(null))
+  const o = redact(null)
+  is(o, null)
+  end()
+})
+
+test('returns original value when passed non-object undefined using [strict: false]', ({ end, is, doesNotThrow }) => {
+  const redact = fastRedact({ paths: ['a.b.c'], strict: false })
+  doesNotThrow(() => redact())
+  const o = redact()
+  is(o, undefined)
+  end()
+})
+
+test('returns original value quoted when passed non-object string using [strict: false]', ({ end, is, doesNotThrow }) => {
   const redact = fastRedact({ paths: ['a.b.c'], strict: false })
   doesNotThrow(() => redact(1))
-  const o = redact(1)
-  is(o, 1)
+  const o = redact('A')
+  is(o, '"A"')
+  end()
+})
+
+test('returns original value quoted when passed non-object string using [strict: false]', ({ end, is, doesNotThrow }) => {
+  const redact = fastRedact({ paths: ['a.b.c'], strict: false })
+  doesNotThrow(() => redact(1))
+  const o = redact('A')
+  is(o, '"A"')
   end()
 })
 
