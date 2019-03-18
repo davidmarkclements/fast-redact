@@ -34,43 +34,34 @@ test('throws when passed non-object number using [strict: true]', ({ end, throws
   end()
 })
 
-test('returns original value when passed non-object boolean using [strict: false]', ({ end, is, doesNotThrow }) => {
-  const redact = fastRedact({ paths: ['a.b.c'], strict: false })
-  doesNotThrow(() => redact(true))
-  const o = redact(true)
-  is(o, true)
-  end()
-})
+test('returns serialized, original value when passed non-object using [strict: false]', ({ end, is, doesNotThrow }) => {
+  const customSerialize = (v) => `Hello ${v}!`
+  const redactDefaultSerialize = fastRedact({ paths: ['a.b.c'], strict: false })
+  const redactCustomSerialize = fastRedact({
+    paths: ['a.b.c'],
+    strict: false,
+    serialize: customSerialize
+  })
 
-test('returns original value when passed non-object null using [strict: false]', ({ end, is, doesNotThrow }) => {
-  const redact = fastRedact({ paths: ['a.b.c'], strict: false })
-  doesNotThrow(() => redact(null))
-  const o = redact(null)
-  is(o, null)
-  end()
-})
+  const primitives = [null, undefined, 'A', 1, false]
+  const expectedOutputs = [
+    ['null', 'Hello null!'],
+    [undefined, 'Hello undefined!'],
+    ['"A"', 'Hello A!'],
+    ['1', 'Hello 1!'],
+    ['false', 'Hello false!']
+  ]
 
-test('returns original value when passed non-object undefined using [strict: false]', ({ end, is, doesNotThrow }) => {
-  const redact = fastRedact({ paths: ['a.b.c'], strict: false })
-  doesNotThrow(() => redact())
-  const o = redact()
-  is(o, undefined)
-  end()
-})
+  primitives.forEach((it, i) => {
+    doesNotThrow(() => redactDefaultSerialize(it))
+    const res = redactDefaultSerialize(it)
+    is(res, expectedOutputs[i][0]) // JSON.stringify(it)
 
-test('returns original value quoted when passed non-object string using [strict: false]', ({ end, is, doesNotThrow }) => {
-  const redact = fastRedact({ paths: ['a.b.c'], strict: false })
-  doesNotThrow(() => redact(1))
-  const o = redact('A')
-  is(o, '"A"')
-  end()
-})
+    doesNotThrow(() => redactCustomSerialize(it))
+    const res2 = redactCustomSerialize(it)
+    is(res2, expectedOutputs[i][1]) // customSerialize(it)
+  })
 
-test('returns original value quoted when passed non-object string using [strict: false]', ({ end, is, doesNotThrow }) => {
-  const redact = fastRedact({ paths: ['a.b.c'], strict: false })
-  doesNotThrow(() => redact(1))
-  const o = redact('A')
-  is(o, '"A"')
   end()
 })
 
