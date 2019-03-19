@@ -34,9 +34,25 @@ test('throws when passed non-object number using [strict: true]', ({ end, throws
   end()
 })
 
-test('returns serialized, original value when passed non-object using [strict: false]', ({ end, is, doesNotThrow }) => {
-  const customSerialize = (v) => `Hello ${v}!`
+test('returns JSON.stringified value when passed non-object using [strict: false] and no serialize option', ({ end, is, doesNotThrow }) => {
   const redactDefaultSerialize = fastRedact({ paths: ['a.b.c'], strict: false })
+
+  // expectedOutputs holds `JSON.stringify`ied versions of each primitive.
+  // We write them out explicitly though to make the test a bit clearer.
+  const primitives = [null, undefined, 'A', 1, false]
+  const expectedOutputs = ['null', undefined, '"A"', '1', 'false']
+
+  primitives.forEach((it, i) => {
+    doesNotThrow(() => redactDefaultSerialize(it))
+    const res = redactDefaultSerialize(it)
+    is(res, expectedOutputs[i])
+  })
+
+  end()
+})
+
+test('returns custom serialized value when passed non-object using [strict: false, serialize: fn]', ({ end, is, doesNotThrow }) => {
+  const customSerialize = (v) => `Hello ${v}!`
   const redactCustomSerialize = fastRedact({
     paths: ['a.b.c'],
     strict: false,
@@ -44,22 +60,11 @@ test('returns serialized, original value when passed non-object using [strict: f
   })
 
   const primitives = [null, undefined, 'A', 1, false]
-  const expectedOutputs = [
-    ['null', 'Hello null!'],
-    [undefined, 'Hello undefined!'],
-    ['"A"', 'Hello A!'],
-    ['1', 'Hello 1!'],
-    ['false', 'Hello false!']
-  ]
 
-  primitives.forEach((it, i) => {
-    doesNotThrow(() => redactDefaultSerialize(it))
-    const res = redactDefaultSerialize(it)
-    is(res, expectedOutputs[i][0]) // JSON.stringify(it)
-
+  primitives.forEach((it) => {
     doesNotThrow(() => redactCustomSerialize(it))
-    const res2 = redactCustomSerialize(it)
-    is(res2, expectedOutputs[i][1]) // customSerialize(it)
+    const res = redactCustomSerialize(it)
+    is(res, customSerialize(it))
   })
 
   end()
