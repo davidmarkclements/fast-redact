@@ -70,6 +70,24 @@ test('returns custom serialized value when passed non-object using [strict: fals
   end()
 })
 
+test('returns original value when passed non-object using [strict: false, serialize: false]', ({ end, is, doesNotThrow }) => {
+  const redactSerializeFalse = fastRedact({
+    paths: ['a.b.c'],
+    strict: false,
+    serialize: false
+  })
+
+  const primitives = [null, undefined, 'A', 1, false]
+
+  primitives.forEach((it) => {
+    doesNotThrow(() => redactSerializeFalse(it))
+    const res = redactSerializeFalse(it)
+    is(res, it)
+  })
+
+  end()
+})
+
 test('throws if a path is not a string', ({ end, is, throws }) => {
   throws((e) => {
     fastRedact({ paths: [1] })
