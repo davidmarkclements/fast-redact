@@ -157,8 +157,9 @@ console.log(o) // { a: 1, b: 2 }
 #### `strict` – `Boolean` - `[true]`
 The `strict` option, when set to `true`, will cause the redactor function to throw if instead 
 of an object it finds a primitive. When `strict` is set to `false`, the redactor function 
-will return the primitive value without being redacted and if the primitive is of type "string",
-the primitive value is returned as JSON (i.e. within double quotes and escaped per JSON rules).
+will treat the primitive value as having already been redacted, and return it serialized (with
+`JSON.stringify` or the user's custom `serialize` function), or as-is if the `serialize` option
+was set to false.
 
 ## Approach
 
