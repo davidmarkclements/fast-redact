@@ -32,6 +32,7 @@ function fastRedact (opts = {}) {
     : 'censor' in opts ? opts.censor : DEFAULT_CENSOR
 
   const isCensorFct = typeof censor === 'function'
+  const censorFctTakesPath = isCensorFct && censor.length > 1
 
   if (paths.length === 0) return serialize || noop
 
@@ -42,7 +43,7 @@ function fastRedact (opts = {}) {
   const compileRestore = restorer({ secret, wcLen })
   const strict = 'strict' in opts ? opts.strict : true
 
-  return redactor({ secret, wcLen, serialize, strict, isCensorFct }, state({
+  return redactor({ secret, wcLen, serialize, strict, isCensorFct, censorFctTakesPath }, state({
     secret,
     censor,
     compileRestore,
