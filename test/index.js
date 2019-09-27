@@ -948,3 +948,17 @@ test('handles leading wildcards and null values', ({ end, is }) => {
   is(o.prop, null)
   end()
 })
+
+test('handles keys with dots', ({ end, is }) => {
+  const redactSingleQ = fastRedact({ paths: [`a['b.c']`], serialize: false })
+  const redactDoubleQ = fastRedact({ paths: [`a["b.c"]`], serialize: false })
+  const redactBacktickQ = fastRedact({ paths: ['a[`b.c`]'], serialize: false })
+  const redactNum = fastRedact({ paths: [`a[-1.2]`], serialize: false })
+  const redactLeading = fastRedact({ paths: [`["b.c"]`], serialize: false })
+  is(redactSingleQ({ a: { 'b.c': 'x', '-1.2': 'x' } }).a['b.c'], censor)
+  is(redactDoubleQ({ a: { 'b.c': 'x', '-1.2': 'x' } }).a['b.c'], censor)
+  is(redactBacktickQ({ a: { 'b.c': 'x', '-1.2': 'x' } }).a['b.c'], censor)
+  is(redactNum({ a: { 'b.c': 'x', '-1.2': 'x' } }).a['-1.2'], censor)
+  is(redactLeading({ 'b.c': 'x', '-1.2': 'x' })['b.c'], censor)
+  end()
+})
