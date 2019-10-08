@@ -1,1 +1,5 @@
 .nyc_output
+.travis.yml
+benchmark/
+example/
+test/
