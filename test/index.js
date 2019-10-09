@@ -34,43 +34,57 @@ test('throws when passed non-object number using [strict: true]', ({ end, throws
   end()
 })
 
-test('returns original value when passed non-object boolean using [strict: false]', ({ end, is, doesNotThrow }) => {
-  const redact = fastRedact({ paths: ['a.b.c'], strict: false })
-  doesNotThrow(() => redact(true))
-  const o = redact(true)
-  is(o, true)
+test('returns JSON.stringified value when passed non-object using [strict: false] and no serialize option', ({ end, is, doesNotThrow }) => {
+  const redactDefaultSerialize = fastRedact({ paths: ['a.b.c'], strict: false })
+
+  // expectedOutputs holds `JSON.stringify`ied versions of each primitive.
+  // We write them out explicitly though to make the test a bit clearer.
+  const primitives = [null, undefined, 'A', 1, false]
+  const expectedOutputs = ['null', undefined, '"A"', '1', 'false']
+
+  primitives.forEach((it, i) => {
+    doesNotThrow(() => redactDefaultSerialize(it))
+    const res = redactDefaultSerialize(it)
+    is(res, expectedOutputs[i])
+  })
+
   end()
 })
 
-test('returns original value when passed non-object null using [strict: false]', ({ end, is, doesNotThrow }) => {
-  const redact = fastRedact({ paths: ['a.b.c'], strict: false })
-  doesNotThrow(() => redact(null))
-  const o = redact(null)
-  is(o, null)
+test('returns custom serialized value when passed non-object using [strict: false, serialize: fn]', ({ end, is, doesNotThrow }) => {
+  const customSerialize = (v) => `Hello ${v}!`
+  const redactCustomSerialize = fastRedact({
+    paths: ['a.b.c'],
+    strict: false,
+    serialize: customSerialize
+  })
+
+  const primitives = [null, undefined, 'A', 1, false]
+
+  primitives.forEach((it) => {
+    doesNotThrow(() => redactCustomSerialize(it))
+    const res = redactCustomSerialize(it)
+    is(res, customSerialize(it))
+  })
+
   end()
 })
 
-test('returns original value when passed non-object undefined using [strict: false]', ({ end, is, doesNotThrow }) => {
-  const redact = fastRedact({ paths: ['a.b.c'], strict: false })
-  doesNotThrow(() => redact())
-  const o = redact()
-  is(o, undefined)
-  end()
-})
+test('returns original value when passed non-object using [strict: false, serialize: false]', ({ end, is, doesNotThrow }) => {
+  const redactSerializeFalse = fastRedact({
+    paths: ['a.b.c'],
+    strict: false,
+    serialize: false
+  })
 
-test('returns original value quoted when passed non-object string using [strict: false]', ({ end, is, doesNotThrow }) => {
-  const redact = fastRedact({ paths: ['a.b.c'], strict: false })
-  doesNotThrow(() => redact(1))
-  const o = redact('A')
-  is(o, '"A"')
-  end()
-})
+  const primitives = [null, undefined, 'A', 1, false]
 
-test('returns original value quoted when passed non-object string using [strict: false]', ({ end, is, doesNotThrow }) => {
-  const redact = fastRedact({ paths: ['a.b.c'], strict: false })
-  doesNotThrow(() => redact(1))
-  const o = redact('A')
-  is(o, '"A"')
+  primitives.forEach((it) => {
+    doesNotThrow(() => redactSerializeFalse(it))
+    const res = redactSerializeFalse(it)
+    is(res, it)
+  })
+
   end()
 })
 
@@ -932,5 +946,19 @@ test('handles leading wildcards and null values', ({ end, is }) => {
   const o = { prop: null }
   is(redact(o), '{"prop":null}')
   is(o.prop, null)
+  end()
+})
+
+test('handles keys with dots', ({ end, is }) => {
+  const redactSingleQ = fastRedact({ paths: [`a['b.c']`], serialize: false })
+  const redactDoubleQ = fastRedact({ paths: [`a["b.c"]`], serialize: false })
+  const redactBacktickQ = fastRedact({ paths: ['a[`b.c`]'], serialize: false })
+  const redactNum = fastRedact({ paths: [`a[-1.2]`], serialize: false })
+  const redactLeading = fastRedact({ paths: [`["b.c"]`], serialize: false })
+  is(redactSingleQ({ a: { 'b.c': 'x', '-1.2': 'x' } }).a['b.c'], censor)
+  is(redactDoubleQ({ a: { 'b.c': 'x', '-1.2': 'x' } }).a['b.c'], censor)
+  is(redactBacktickQ({ a: { 'b.c': 'x', '-1.2': 'x' } }).a['b.c'], censor)
+  is(redactNum({ a: { 'b.c': 'x', '-1.2': 'x' } }).a['-1.2'], censor)
+  is(redactLeading({ 'b.c': 'x', '-1.2': 'x' })['b.c'], censor)
   end()
 })

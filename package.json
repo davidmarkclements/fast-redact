@@ -1,11 +1,11 @@
 {
   "name": "fast-redact",
-  "version": "1.4.4",
+  "version": "2.0.0",
   "description": "very fast object redaction",
   "main": "index.js",
   "scripts": {
     "test": "tap test",
-    "pretest": "standard index.js 'lib/*.js' 'example/*.js' benchmark/index.js test/index.js | snazzy",
+    "posttest": "standard index.js 'lib/*.js' 'example/*.js' benchmark/index.js test/index.js | snazzy",
     "cov": "tap --cov test",
     "cov-ui": "tap --coverage-report=html test",
     "ci": "tap --cov --100 test",
