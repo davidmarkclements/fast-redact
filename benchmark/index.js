@@ -4,6 +4,7 @@ const noir = require('pino-noir')(['a.b.c'])
 const fastRedact = require('..')
 
 const censorFn = (v) => v + '.'
+const censorFnWithPath = (v, p) => v + '.'
 
 const redactNoSerialize = fastRedact({ paths: ['a.b.c'], serialize: false })
 const redactWildNoSerialize = fastRedact({ paths: ['a.b.*'], serialize: false })
@@ -16,6 +17,10 @@ const redactIntermediateWildMatchWildOutcome = fastRedact({ paths: ['a.*.c', 'a.
 const redactStaticMatchWildOutcome = fastRedact({ paths: ['a.b.c', 'a.d.a', 'a.d.b', 'a.d.c'] })
 const noirCensorFunction = require('pino-noir')(['a.b.*'], censorFn)
 const redactCensorFunction = fastRedact({ paths: ['a.b.*'], censor: censorFn, serialize: false })
+const redactIntermediateWildCensorFunction = fastRedact({ paths: ['a.*.c'], censor: censorFn, serialize: false })
+const redactCensorFunctionWithPath = fastRedact({ paths: ['a.d.b'], censor: censorFn, serialize: false })
+const redactWildCensorFunctionWithPath = fastRedact({ paths: ['a.d.*'], censor: censorFnWithPath, serialize: false })
+const redactIntermediateWildCensorFunctionWithPath = fastRedact({ paths: ['a.*.c'], censorFnWithPath, serialize: false })
 
 const getObj = () => ({
   a: {
@@ -161,6 +166,34 @@ var run = bench([
     const obj = getObj()
     for (var i = 0; i < max; i++) {
       redactCensorFunction(obj)
+    }
+    setImmediate(cb)
+  },
+  function benchFastRedactCensorFunctionIntermediateWild (cb) {
+    const obj = getObj()
+    for (var i = 0; i < max; i++) {
+      redactIntermediateWildCensorFunction(obj)
+    }
+    setImmediate(cb)
+  },
+  function benchFastRedactCensorFunctionWithPath (cb) {
+    const obj = getObj()
+    for (var i = 0; i < max; i++) {
+      redactCensorFunctionWithPath(obj)
+    }
+    setImmediate(cb)
+  },
+  function benchFastRedactWildCensorFunctionWithPath (cb) {
+    const obj = getObj()
+    for (var i = 0; i < max; i++) {
+      redactWildCensorFunctionWithPath(obj)
+    }
+    setImmediate(cb)
+  },
+  function benchFastRedactIntermediateWildCensorFunctionWithPath (cb) {
+    const obj = getObj()
+    for (var i = 0; i < max; i++) {
+      redactIntermediateWildCensorFunctionWithPath(obj)
     }
     setImmediate(cb)
   }
