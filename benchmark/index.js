@@ -4,7 +4,7 @@ const noir = require('pino-noir')(['a.b.c'])
 const fastRedact = require('..')
 
 const censorFn = (v) => v + '.'
-const censorFnWithPath = (v, p) => v + '.'
+const censorFnWithPath = (v, p) => v + '.' + p
 
 const redactNoSerialize = fastRedact({ paths: ['a.b.c'], serialize: false })
 const redactWildNoSerialize = fastRedact({ paths: ['a.b.*'], serialize: false })
