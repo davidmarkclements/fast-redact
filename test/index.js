@@ -239,6 +239,30 @@ test('supports path segments that aren\'t identifiers if bracketed', ({ end, str
   end()
 })
 
+test('supports consecutive bracketed path segments', ({ end, strictSame }) => {
+  const redactSerializeFalse = fastRedact({
+    paths: ['a[""]["y"]'],
+    serialize: false,
+    censor: 'X'
+  })
+
+  const res = redactSerializeFalse({ a: { '': { 'y': 'Hi!' } } })
+  strictSame(res, { a: { '': { 'y': 'X' } } })
+  end()
+})
+
+test('supports leading bracketed widcard', ({ end, strictSame }) => {
+  const redactSerializeFalse = fastRedact({
+    paths: ['[*]["y"]'],
+    serialize: false,
+    censor: 'X'
+  })
+
+  const res = redactSerializeFalse({ 'x': { 'y': 'Hi!' } })
+  strictSame(res, { 'x': { 'y': 'X' } })
+  end()
+})
+
 test('masks according to supplied censor', ({ end, is }) => {
   const censor = 'test'
   const redact = fastRedact({ paths: ['a'], censor, serialize: false })
