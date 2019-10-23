@@ -88,23 +88,27 @@ test('returns original value when passed non-object using [strict: false, serial
   end()
 })
 
-test('throws if a path is not a string', ({ end, is, throws }) => {
+test('throws if a path is not a string', ({ end, throws }) => {
+  const invalidTypeMsg = 'fast-redact - Paths must be (non-empty) strings'
   throws((e) => {
     fastRedact({ paths: [1] })
-  }, Error('fast-redact - Paths must be strings'))
+  }, Error(invalidTypeMsg))
   throws((e) => {
     fastRedact({ paths: [null] })
-  }, Error('fast-redact - Paths must be strings'))
+  }, Error(invalidTypeMsg))
   throws((e) => {
     fastRedact({ paths: [undefined] })
-  }, Error('fast-redact - Paths must be strings'))
+  }, Error(invalidTypeMsg))
   throws((e) => {
     fastRedact({ paths: [{}] })
-  }, Error('fast-redact - Paths must be strings'))
+  }, Error(invalidTypeMsg))
+  throws((e) => {
+    fastRedact({ paths: [[null]] })
+  }, Error(invalidTypeMsg))
   end()
 })
 
-test('throws when passed illegal paths', ({ end, is, throws }) => {
+test('throws when passed illegal paths', ({ end, throws }) => {
   const err = (s) => Error(`fast-redact – Invalid path (${s})`)
   throws((e) => {
     fastRedact({ paths: ['@'] })
@@ -193,6 +197,12 @@ test('throws when passed illegal paths', ({ end, is, throws }) => {
   throws((e) => {
     fastRedact({ paths: ['a\r'] })
   }, err('a\r'))
+  throws((e) => {
+    fastRedact({ paths: [''] })
+  }, err(''))
+  throws((e) => {
+    fastRedact({ paths: ['[""""]'] })
+  }, err('[""""]'))
   end()
 })
 
@@ -214,6 +224,18 @@ test('throws if serialize is false and remove is true', ({ end, throws }) => {
   throws(() => {
     fastRedact({ paths: ['a'], serialize: false, remove: true })
   }, Error('fast-redact – remove option may only be set when serializer is JSON.stringify'))
+  end()
+})
+
+test('supports path segments that aren\'t identifiers if bracketed', ({ end, strictSame }) => {
+  const redactSerializeFalse = fastRedact({
+    paths: ['a[""]', 'a["x-y"]', 'a[\'"y"\']', "a['\\'x\\'']"],
+    serialize: false,
+    censor: 'X'
+  })
+
+  const res = redactSerializeFalse({ a: { '': 'Hi!', 'x-y': 'Hi!', '"y"': 'Hi!', "'x'": 'Hi!' } })
+  strictSame(res, { a: { '': 'X', 'x-y': 'X', '"y"': 'X', "'x'": 'X' } })
   end()
 })
 
