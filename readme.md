@@ -115,7 +115,7 @@ Please note that asynchronous functions are not supported.
 
 #### `serialize` – `Function | Boolean` – `(JSON.stringify)`
 
-The `serialize` option may be a function of a boolean. If a function is supplied, this
+The `serialize` option may either be a function or a boolean. If a function is supplied, this
 will be used to `serialize` the redacted object. It's important to understand that for 
 performance reasons `fast-redact` *mutates* the original object, then serializes, then 
 restores the original values. So the object passed to the serializer is the exact same
