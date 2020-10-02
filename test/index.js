@@ -5,6 +5,7 @@ const fastRedact = require('..')
 
 const censor = '[REDACTED]'
 const censorFct = value => !value ? value : 'xxx' + value.substr(-2)
+const censorWithPath = (v, p) => p.join('.') + ' ' + censorFct(v)
 
 test('returns no-op when passed no paths [serialize: false]', ({ end, doesNotThrow }) => {
   const redact = fastRedact({ paths: [], serialize: false })
@@ -304,6 +305,26 @@ test('masks according to supplied censor function with nested wildcards', ({ end
   const redact = fastRedact({ paths: ['*.b'], censor: censorFct, serialize: false })
   is(redact({ a: { b: '0123456' } }).a.b, 'xxx56')
   is(redact({ c: { b: '0123456', d: 'pristine' } }).c.b, 'xxx56')
+  is(redact({ c: { b: '0123456', d: 'pristine' } }).c.d, 'pristine')
+  end()
+})
+
+test('masks according to supplied censor-with-path function', ({ end, is }) => {
+  const redact = fastRedact({ paths: ['a'], censor: censorWithPath, serialize: false })
+  is(redact({ a: '0123456' }).a, 'a xxx56')
+  end()
+})
+
+test('masks according to supplied censor-with-path function with wildcards', ({ end, is }) => {
+  const redact = fastRedact({ paths: '*', censor: censorWithPath, serialize: false })
+  is(redact({ a: '0123456' }).a, 'a xxx56')
+  end()
+})
+
+test('masks according to supplied censor-with-path function with nested wildcards', ({ end, is }) => {
+  const redact = fastRedact({ paths: ['*.b'], censor: censorWithPath, serialize: false })
+  is(redact({ a: { b: '0123456' } }).a.b, 'a.b xxx56')
+  is(redact({ c: { b: '0123456', d: 'pristine' } }).c.b, 'c.b xxx56')
   is(redact({ c: { b: '0123456', d: 'pristine' } }).c.d, 'pristine')
   end()
 })
