@@ -7,6 +7,7 @@ const restorer = require('./lib/restorer')
 const { groupRedact, nestedRedact } = require('./lib/modifiers')
 const state = require('./lib/state')
 const rx = require('./lib/rx')
+const createStash = require('./lib/stash')
 const validate = validator()
 const noop = (o) => o
 noop.restore = noop
@@ -47,6 +48,7 @@ function fastRedact (opts = {}) {
     secret,
     censor,
     compileRestore,
+    createStash,
     serialize,
     groupRedact,
     nestedRedact,

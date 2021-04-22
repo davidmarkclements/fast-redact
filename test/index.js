@@ -987,6 +987,38 @@ test('correctly restores original object when a matching path has value of `unde
   end()
 })
 
+test('correctly restores keys matching a static path and a wildcard', ({ end, is }) => {
+  const redact = fastRedact({
+    paths: ['a', '*.b', 'x.b'],
+    serialize: false
+  })
+  const o = { x: { a: 'a', b: 'b' } }
+  redact(o)
+  is(o.x.a, 'a')
+  is(o.x.b, '[REDACTED]')
+  redact.restore(o)
+  is(o.x.a, 'a')
+  is(o.x.b, 'b')
+  end()
+})
+
+test('correctly restores keys matching multiple wildcards', ({ end, is }) => {
+  const redact = fastRedact({
+    paths: ['a', '*.b', 'x.*', 'y.*.z'],
+    serialize: false
+  })
+  const o = { x: { a: 'a', b: 'b' }, y: { f: { z: 'z' } } }
+  redact(o)
+  is(o.x.a, '[REDACTED]')
+  is(o.x.b, '[REDACTED]')
+  is(o.y.f.z, '[REDACTED]')
+  redact.restore(o)
+  is(o.x.a, 'a')
+  is(o.x.b, 'b')
+  is(o.y.f.z, 'z')
+  end()
+})
+
 test('handles multiple paths with leading brackets', ({ end, is }) => {
   const redact = fastRedact({ paths: ['["x-y"]', '["y-x"]'] })
   const o = { 'x-y': 'test', 'y-x': 'test2' }
