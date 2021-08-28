@@ -289,6 +289,22 @@ test('redact.restore function places original values back in place', ({ end, is 
   end()
 })
 
+test('redact.restore function places original values back in place when called twice and the first call is precensored', ({ end, is }) => {
+  const censor = 'test'
+  const redact = fastRedact({ paths: ['a'], censor, serialize: false })
+  const o1 = { a: censor }
+  const o2 = { a: 'a' }
+  redact(o1)
+  is(o1.a, censor)
+  redact.restore(o1)
+  is(o1.a, censor)
+  redact(o2)
+  is(o2.a, censor)
+  redact.restore(o2)
+  is(o2.a, 'a')
+  end()
+})
+
 test('masks according to supplied censor function', ({ end, is }) => {
   const redact = fastRedact({ paths: ['a'], censor: censorFct, serialize: false })
   is(redact({ a: '0123456' }).a, 'xxx56')
