@@ -1209,3 +1209,15 @@ test('handles multi wildcards within arrays with a censorFct', ({ end, is }) => 
   end()
 })
 
+test('handles multi wildcards within arrays with undefined values', ({ end, is }) => {
+  const redact = fastRedact({
+    paths: ['a[*].x.d[*].i.*.i']
+  })
+  const o = {
+    a: [
+      { x: { d: [ { i: undefined, j: 'NR' } ] } }
+    ]
+  }
+  is(redact(o), '{"a":[{"x":{"d":[{"i":"[REDACTED]","j":"NR"}]}}]}')
+  end()
+})
