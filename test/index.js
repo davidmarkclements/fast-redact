@@ -1183,3 +1183,29 @@ test('handles keys with dots', ({ end, is }) => {
   is(redactLeading({ 'b.c': 'x', '-1.2': 'x' })['b.c'], censor)
   end()
 })
+
+test('handles multi wildcards within arrays', ({ end, is }) => {
+  const redact = fastRedact({
+    paths: ['a[*].x.d[*].i.*']
+  })
+  const o = {
+    a: [ { x: { d: [ { j: { i: 'R' } }, { i: 'R', j: 'NR' } ] } } ]
+  }
+  is(redact(o), '{"a":[{"x":{"d":["[REDACTED]","[REDACTED]"]}}]}')
+  end()
+})
+
+test('handles multi wildcards within arrays with a censorFct', ({ end, is }) => {
+  const redact = fastRedact({
+    paths: ['a[*].x.d[*].i.*.i'],
+    censor: censorWithPath
+  })
+  const o = {
+    a: [
+      { x: { d: [ { i: 'R', j: 'NR' } ] } }
+    ]
+  }
+  is(redact(o), '{"a":[{"x":{"d":[{"i":"a.0.x.d.*.i.*.i xxxR","j":"NR"}]}}]}')
+  end()
+})
+
