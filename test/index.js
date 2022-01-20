@@ -207,13 +207,6 @@ test('throws when passed illegal paths', ({ end, throws }) => {
   end()
 })
 
-test('throws if more than one wildcard in a path', ({ end, throws }) => {
-  throws(() => {
-    fastRedact({ paths: ['a.*.x.*'], serialize: false })
-  }, Error('fast-redact – Only one wildcard per path is supported'))
-  end()
-})
-
 test('throws if a custom serializer is used and remove is true', ({ end, throws }) => {
   throws(() => {
     fastRedact({ paths: ['a'], serialize: (o) => o, remove: true })
@@ -636,7 +629,7 @@ test('ultimate wildcards – handles circulars', ({ end, is, same }) => {
   end()
 })
 
-test('ultimate wildcards – handles circulars – restore', ({ end, is, same }) => {
+test('ultimate wildcards – handles circulars – restore', ({ end, is }) => {
   const redact = fastRedact({ paths: ['bar.baz.*'], serialize: false })
   const bar = { b: 2 }
   const o = { a: 1, bar }
@@ -650,7 +643,21 @@ test('ultimate wildcards – handles circulars – restore', ({ end, is, same }
   end()
 })
 
-test('ultimate wildcards – handles circulars and cross references – restore', ({ end, is, same }) => {
+test('ultimate multi wildcards – handles circulars – restore', ({ end, is, same }) => {
+  const redact = fastRedact({ paths: ['bar.*.baz.*.b'], serialize: false })
+  const bar = { b: 2 }
+  const o = { a: 1, bar }
+  bar.baz = bar
+  o.bar.baz = o.bar
+  is(o.bar.baz, bar)
+  redact(o)
+  is(o.bar.baz.b, censor)
+  redact.restore(o)
+  same(o.bar.baz, bar)
+  end()
+})
+
+test('ultimate wildcards – handles circulars and cross references – restore', ({ end, is }) => {
   const redact = fastRedact({ paths: ['bar.baz.*', 'cf.*'], serialize: false })
   const bar = { b: 2 }
   const o = { a: 1, bar, cf: { bar } }
@@ -758,6 +765,21 @@ test('parent wildcard – two following keys', ({ end, is }) => {
   end()
 })
 
+test('multi object wildcard', ({ end, is }) => {
+  const redact = fastRedact({ paths: ['a.*.x.*.c'], serialize: false })
+  const result = redact({ a: { b: { x: { z: { c: 's' } } }, d: { x: { u: { a: 's', b: 's', c: 's' } } } } })
+  is(result.a.b.x.z.c, censor)
+  is(result.a.d.x.u.a, 's')
+  is(result.a.d.x.u.b, 's')
+  is(result.a.d.x.u.c, censor)
+  redact.restore(result)
+  is(result.a.b.x.z.c, 's')
+  is(result.a.d.x.u.a, 's')
+  is(result.a.d.x.u.b, 's')
+  is(result.a.d.x.u.c, 's')
+  end()
+})
+
 test('parent wildcard  – two following keys – reuse', ({ end, is }) => {
   const redact = fastRedact({ paths: ['a.*.x.c'], serialize: false })
   const result = redact({ a: { b: { x: { c: 's' } }, d: { x: { a: 's', b: 's', c: 's' } } } })
@@ -795,6 +817,106 @@ test('parent wildcard - array', ({ end, is }) => {
   end()
 })
 
+test('multiple wildcards', ({ end, is }) => {
+  const redact = fastRedact({ paths: ['a[*].c[*].d'], serialize: false })
+  const obj = {
+    a: [
+      { c: [{ d: '1', e: '2' }, { d: '1', e: '3' }, { d: '1', e: '4' }] },
+      { c: [{ d: '1', f: '5' }] },
+      { c: [{ d: '2', g: '6' }] }
+    ]
+  }
+  const result = redact(obj)
+  is(result.a[0].c[0].d, censor)
+  is(result.a[0].c[0].e, '2')
+  is(result.a[0].c[1].d, censor)
+  is(result.a[0].c[1].e, '3')
+  is(result.a[0].c[2].d, censor)
+  is(result.a[0].c[2].e, '4')
+  is(result.a[1].c[0].d, censor)
+  is(result.a[1].c[0].f, '5')
+  is(result.a[2].c[0].d, censor)
+  is(result.a[2].c[0].g, '6')
+  redact.restore(result)
+  is(result.a[0].c[0].d, '1')
+  is(result.a[0].c[0].e, '2')
+  is(result.a[0].c[1].d, '1')
+  is(result.a[0].c[1].e, '3')
+  is(result.a[0].c[2].d, '1')
+  is(result.a[0].c[2].e, '4')
+  is(result.a[1].c[0].d, '1')
+  is(result.a[1].c[0].f, '5')
+  is(result.a[2].c[0].d, '2')
+  is(result.a[2].c[0].g, '6')
+  end()
+})
+
+test('multiple wildcards - censor function', ({ end, is }) => {
+  const redact = fastRedact({ paths: ['a[*].c[*].d'], censor: censorFct, serialize: false })
+  const obj = {
+    a: [
+      { c: [{ d: '1', e: '2' }, { d: '1', e: '3' }, { d: '1', e: '4' }] },
+      { c: [{ d: '1', f: '5' }] },
+      { c: [{ d: '2', g: '6' }] }
+    ]
+  }
+  const result = redact(obj)
+  is(result.a[0].c[0].d, 'xxx1')
+  is(result.a[0].c[0].e, '2')
+  is(result.a[0].c[1].d, 'xxx1')
+  is(result.a[0].c[1].e, '3')
+  is(result.a[0].c[2].d, 'xxx1')
+  is(result.a[0].c[2].e, '4')
+  is(result.a[1].c[0].d, 'xxx1')
+  is(result.a[1].c[0].f, '5')
+  is(result.a[2].c[0].d, 'xxx2')
+  is(result.a[2].c[0].g, '6')
+  end()
+})
+
+test('multiple wildcards end', ({ end, is, same }) => {
+  const redact = fastRedact({ paths: ['a[*].c.d[*]'], serialize: false })
+  const obj = {
+    a: [
+      { c: { d: [ '1', '2' ], e: '3' } },
+      { c: { d: [ '1' ], f: '4' } },
+      { c: { d: [ '1' ], g: '5' } }
+    ]
+  }
+  const result = redact(obj)
+  same(result.a[0].c.d, [censor, censor])
+  is(result.a[0].c.e, '3')
+  same(result.a[1].c.d, [censor])
+  is(result.a[1].c.f, '4')
+  same(result.a[2].c.d, [censor])
+  is(result.a[2].c.g, '5')
+  end()
+})
+
+test('multiple wildcards depth after n wildcard', ({ end, is }) => {
+  const redact = fastRedact({ paths: ['a[*].c.d[*].i'], serialize: false })
+  const obj = {
+    a: [
+      { c: { d: [ { i: '1', j: '2' } ], e: '3' } },
+      { c: { d: [ { i: '1', j: '2' }, { i: '1', j: '3' } ], f: '4' } },
+      { c: { d: [ { i: '1', j: '2' } ], g: '5' } }
+    ]
+  }
+  const result = redact(obj)
+  is(result.a[0].c.d[0].i, censor)
+  is(result.a[0].c.d[0].j, '2')
+  is(result.a[0].c.e, '3')
+  is(result.a[1].c.d[0].i, censor)
+  is(result.a[1].c.d[0].j, '2')
+  is(result.a[1].c.d[1].i, censor)
+  is(result.a[1].c.d[1].j, '3')
+  is(result.a[1].c.f, '4')
+  is(result.a[2].c.d[0].i, censor)
+  is(result.a[2].c.d[0].j, '2')
+  is(result.a[2].c.g, '5')
+  end()
+})
+
 test('parent wildcards – array – single index', ({ end, same }) => {
   const redact = fastRedact({ paths: ['insideArray.like[3].*.foo'], serialize: false })
   same(redact({ insideArray: { like: ['a', 'b', 'c', { this: { foo: 'meow' } }] } }), { insideArray: { like: ['a', 'b', 'c', { this: { foo: censor } }] } })
@@ -826,7 +948,7 @@ test('parent wildcards - gracefully handles primitives that match intermediate k
   end()
 })
 
-test('parent wildcards – handles circulars', ({ end, is, same }) => {
+test('parent wildcards – handles circulars', ({ end, same }) => {
   const redact = fastRedact({ paths: ['x.*.baz'], serialize: false })
   const bar = { b: 2 }
   const o = { x: { a: 1, bar } }
@@ -836,7 +958,7 @@ test('parent wildcards – handles circulars', ({ end, is, same }) => {
   end()
 })
 
-test('parent wildcards – handles circulars – restore', ({ end, is, same }) => {
+test('parent wildcards – handles circulars – restore', ({ end, is }) => {
   const redact = fastRedact({ paths: ['x.*.baz'], serialize: false })
   const bar = { b: 2 }
   const o = { x: { a: 1, bar } }
@@ -851,7 +973,7 @@ test('parent wildcards – handles circulars – restore', ({ end, is, same }) 
   end()
 })
 
-test('parent wildcards – handles circulars and cross references – restore', ({ end, is, same }) => {
+test('parent wildcards – handles circulars and cross references – restore', ({ end, is }) => {
   const redact = fastRedact({ paths: ['x.*.baz', 'x.*.cf.bar'], serialize: false })
   const bar = { b: 2 }
   const o = { x: { a: 1, bar, y: { cf: { bar } } } }
@@ -868,14 +990,14 @@ test('parent wildcards – handles circulars and cross references – restore',
   end()
 })
 
-test('parent wildcards – handles missing paths', ({ end, is, same }) => {
+test('parent wildcards – handles missing paths', ({ end, is }) => {
   const redact = fastRedact({ paths: ['z.*.baz'] })
   const o = { a: { b: { c: 's' }, d: { a: 's', b: 's', c: 's' } } }
   is(redact(o), JSON.stringify(o))
   end()
 })
 
-test('ultimate wildcards – handles missing paths', ({ end, is, same }) => {
+test('ultimate wildcards – handles missing paths', ({ end, is }) => {
   const redact = fastRedact({ paths: ['z.*'] })
   const o = { a: { b: { c: 's' }, d: { a: 's', b: 's', c: 's' } } }
   is(redact(o), JSON.stringify(o))
@@ -924,7 +1046,7 @@ test('supports single leading bracket containing non-legal keyword characters', 
   end()
 })
 
-test('(leading brackets) ultimate wildcards – handles circulars and cross references – restore', ({ end, is, same }) => {
+test('(leading brackets) ultimate wildcards – handles circulars and cross references – restore', ({ end, is }) => {
   const redact = fastRedact({ paths: ['bar.baz.*', 'cf.*'], serialize: false })
   const bar = { b: 2 }
   const o = { a: 1, bar, cf: { bar } }
@@ -941,7 +1063,7 @@ test('(leading brackets) ultimate wildcards – handles circulars and cross refe
   end()
 })
 
-test('(leading brackets) parent wildcards – handles circulars and cross references – restore', ({ end, is, same }) => {
+test('(leading brackets) parent wildcards – handles circulars and cross references – restore', ({ end, is }) => {
   const redact = fastRedact({ paths: ['["x"].*.baz', '["x"].*.cf.bar'], serialize: false })
   const bar = { b: 2 }
   const o = { x: { a: 1, bar, y: { cf: { bar } } } }
@@ -958,7 +1080,7 @@ test('(leading brackets) parent wildcards – handles circulars and cross refere
   end()
 })
 
-test('(leading brackets) ultimate wildcards – handles missing paths', ({ end, is, same }) => {
+test('(leading brackets) ultimate wildcards – handles missing paths', ({ end, is }) => {
   const redact = fastRedact({ paths: ['["z"].*'] })
   const o = { a: { b: { c: 's' }, d: { a: 's', b: 's', c: 's' } } }
   is(redact(o), JSON.stringify(o))
@@ -1075,5 +1197,43 @@ test('handles keys with dots', ({ end, is }) => {
   is(redactBacktickQ({ a: { 'b.c': 'x', '-1.2': 'x' } }).a['b.c'], censor)
   is(redactNum({ a: { 'b.c': 'x', '-1.2': 'x' } }).a['-1.2'], censor)
   is(redactLeading({ 'b.c': 'x', '-1.2': 'x' })['b.c'], censor)
+  end()
+})
+
+test('handles multi wildcards within arrays', ({ end, is }) => {
+  const redact = fastRedact({
+    paths: ['a[*].x.d[*].i.*']
+  })
+  const o = {
+    a: [ { x: { d: [ { j: { i: 'R' } }, { i: 'R', j: 'NR' } ] } } ]
+  }
+  is(redact(o), '{"a":[{"x":{"d":["[REDACTED]","[REDACTED]"]}}]}')
+  end()
+})
+
+test('handles multi wildcards within arrays with a censorFct', ({ end, is }) => {
+  const redact = fastRedact({
+    paths: ['a[*].x.d[*].i.*.i'],
+    censor: censorWithPath
+  })
+  const o = {
+    a: [
+      { x: { d: [ { i: 'R', j: 'NR' } ] } }
+    ]
+  }
+  is(redact(o), '{"a":[{"x":{"d":[{"i":"a.0.x.d.*.i.*.i xxxR","j":"NR"}]}}]}')
+  end()
+})
+
+test('handles multi wildcards within arrays with undefined values', ({ end, is }) => {
+  const redact = fastRedact({
+    paths: ['a[*].x.d[*].i.*.i']
+  })
+  const o = {
+    a: [
+      { x: { d: [ { i: undefined, j: 'NR' } ] } }
+    ]
+  }
+  is(redact(o), '{"a":[{"x":{"d":[{"i":"[REDACTED]","j":"NR"}]}}]}')
   end()
 })

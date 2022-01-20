@@ -26,6 +26,8 @@ const redactIntermediateWildCensorFunction = fastRedact({ paths: ['as.*.c'], cen
 const redactCensorFunctionWithPath = fastRedact({ paths: ['at.d.b'], censor: censorFn, serialize: false })
 const redactWildCensorFunctionWithPath = fastRedact({ paths: ['au.d.*'], censor: censorFnWithPath, serialize: false })
 const redactIntermediateWildCensorFunctionWithPath = fastRedact({ paths: ['av.*.c'], censorFnWithPath, serialize: false })
+const redactMultiWild = fastRedact({ paths: ['aw.*.*'] })
+const redactMultiWildCensorFunction = fastRedact({ paths: ['ax.*.*'], censor: censorFn, serialize: false })
 
 const getObj = (outerKey) => ({
   [outerKey]: {
@@ -199,6 +201,20 @@ var run = bench([
     const obj = getObj('av')
     for (var i = 0; i < max; i++) {
       redactIntermediateWildCensorFunctionWithPath(obj)
+    }
+    setImmediate(cb)
+  },
+  function benchFastRedactMultiWild (cb) {
+    const obj = getObj('aw')
+    for (var i = 0; i < max; i++) {
+      redactMultiWild(obj)
+    }
+    setImmediate(cb)
+  },
+  function benchFastRedactMultiWildCensorFunction (cb) {
+    const obj = getObj('ax')
+    for (var i = 0; i < max; i++) {
+      redactMultiWildCensorFunction(obj)
     }
     setImmediate(cb)
   }
