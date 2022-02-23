@@ -1237,3 +1237,14 @@ test('handles multi wildcards within arrays with undefined values', ({ end, is }
   is(redact(o), '{"a":[{"x":{"d":[{"i":"[REDACTED]","j":"NR"}]}}]}')
   end()
 })
+
+test('handles multi wildcards with objects containing nulls', ({ end, is }) => {
+  const redact = fastRedact({
+    paths: ['*.*.x'],
+    serialize: false,
+    censor: '[REDACTED]'
+  })
+  const o = { a: { b: null } }
+  is(redact(o), o)
+  end()
+})
