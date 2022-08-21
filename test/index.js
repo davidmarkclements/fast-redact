@@ -1251,7 +1251,7 @@ test('handles multi wildcards with objects containing nulls', ({ end, is }) => {
 
 test('handles multi wildcards with pattern repetition', ({ end, is }) => {
   const redact = fastRedact({
-    paths: ['*.d', '*.*.d', '*.*.d']
+    paths: ['*.d', '*.*.d', '*.*.*.d']
   })
   const o = {
     x: { c: { d: 'hide me', e: 'leave me be' } },
@@ -1264,7 +1264,7 @@ test('handles multi wildcards with pattern repetition', ({ end, is }) => {
 
 test('restores multi wildcards with pattern repetition', ({ end, is }) => {
   const redact = fastRedact({
-    paths: ['*.d', '*.*.d', '*.*.d']
+    paths: ['*.d', '*.*.d', '*.*.*.d']
   })
   const o = {
     x: { c: { d: 'hide me', e: 'leave me be' } },
