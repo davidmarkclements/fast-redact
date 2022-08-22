@@ -1,6 +1,6 @@
 {
   "name": "fast-redact",
-  "version": "3.1.1",
+  "version": "3.1.2",
   "description": "very fast object redaction",
   "main": "index.js",
   "scripts": {
