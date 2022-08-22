@@ -1248,3 +1248,32 @@ test('handles multi wildcards with objects containing nulls', ({ end, is }) => {
   is(redact(o), o)
   end()
 })
+
+test('handles multi wildcards with pattern repetition', ({ end, is }) => {
+  const redact = fastRedact({
+    paths: ['*.d', '*.*.d', '*.*.*.d']
+  })
+  const o = {
+    x: { c: { d: 'hide me', e: 'leave me be' } },
+    y: { c: { d: 'and me', f: 'I want to live' } },
+    z: { c: { d: 'and also I', g: 'I want to run in a stream' } }
+  }
+  is(redact(o), '{"x":{"c":{"d":"[REDACTED]","e":"leave me be"}},"y":{"c":{"d":"[REDACTED]","f":"I want to live"}},"z":{"c":{"d":"[REDACTED]","g":"I want to run in a stream"}}}')
+  end()
+})
+
+test('restores multi wildcards with pattern repetition', ({ end, is }) => {
+  const redact = fastRedact({
+    paths: ['*.d', '*.*.d', '*.*.*.d']
+  })
+  const o = {
+    x: { c: { d: 'hide me', e: 'leave me be' } },
+    y: { c: { d: 'and me', f: 'I want to live' } },
+    z: { c: { d: 'and also I', g: 'I want to run in a stream' } }
+  }
+  redact(o)
+  is(o.x.c.d, 'hide me')
+  is(o.y.c.d, 'and me')
+  is(o.z.c.d, 'and also I')
+  end()
+})
