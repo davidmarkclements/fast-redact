@@ -15,15 +15,17 @@ const fauxRequest = {
   headers: {
     host: 'http://example.com',
     cookie: `oh oh we don't want this exposed in logs in etc.`,
-    referer: `if we're cool maybe we'll even redact this`
+    referer: `if we're cool maybe we'll even redact this`,
+    // Note: headers often contain hyphens and require bracket notation
+    'X-Forwarded-For': `192.168.0.1`
   }
 }
 const redact = fastRedact({
-  paths: ['headers.cookie', 'headers.referer']
+  paths: ['headers.cookie', 'headers.referer', 'headers["X-Forwarded-For"]']
 })
 
 console.log(redact(fauxRequest))
-// {"headers":{"host":"http://example.com","cookie":"[REDACTED]","referer":"[REDACTED]"}}
+// {"headers":{"host":"http://example.com","cookie":"[REDACTED]","referer":"[REDACTED]","X-Forwarded-For": "[REDACTED]"}}
 ```
 
 ## API
