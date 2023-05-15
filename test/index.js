@@ -1277,3 +1277,81 @@ test('restores multi wildcards with pattern repetition', ({ end, is }) => {
   is(o.z.c.d, 'and also I')
   end()
 })
+
+test('multi level wildcards with level > 3', ({ end, is }) => {
+  const redact = fastRedact({ paths: ['*.*.*.c', '*.*.*.*.c'] })
+  const o = {
+    a: {
+      b: {
+        x: {
+          c: 's'
+        }
+      },
+      d: {
+        x: {
+          u: {
+            a: 's',
+            b: 's',
+            c: 's'
+          }
+        }
+      }
+    }
+  }
+  is(redact(o), '{"a":{"b":{"x":{"c":"[REDACTED]"}},"d":{"x":{"u":{"a":"s","b":"s","c":"[REDACTED]"}}}}}')
+  end()
+})
+
+test('multi level wildcards at nested level inside object', ({ end, is }) => {
+  const redact = fastRedact({ paths: ['a.*.*.c', 'a.d.*.*.c'] })
+  const o = {
+    a: {
+      b: {
+        x: {
+          c: 's'
+        }
+      },
+      d: {
+        x: {
+          u: {
+            a: 's',
+            b: 's',
+            c: 's'
+          }
+        }
+      }
+    }
+  }
+  is(redact(o), '{"a":{"b":{"x":{"c":"[REDACTED]"}},"d":{"x":{"u":{"a":"s","b":"s","c":"[REDACTED]"}}}}}')
+  end()
+})
+
+test('multi level wildcards with level > 3 with serialize false', ({ end, is }) => {
+  const redact = fastRedact({ paths: ['*.*.*.c', '*.*.*.*.c'], serialize: false })
+  const result = redact({ a: { b: { x: { c: 's' } }, d: { x: { u: { a: 's', b: 's', c: 's' } } } } })
+  is(result.a.b.x.c, censor)
+  is(result.a.d.x.u.a, 's')
+  is(result.a.d.x.u.b, 's')
+  is(result.a.d.x.u.c, censor)
+  redact.restore(result)
+  is(result.a.b.x.c, 's')
+  is(result.a.d.x.u.a, 's')
+  is(result.a.d.x.u.b, 's')
+  is(result.a.d.x.u.c, 's')
+  end()
+})
+
+test('multi level wildcards at nested level inside object with serialize false', ({ end, is }) => {
+  const redact = fastRedact({ paths: ['a.*.*.c', 'a.d.*.*.c'], serialize: false })
+  const result = redact({ a: { b: { x: { c: 's' } }, d: { x: { u: { a: 's', b: 's', c: 's' } } } } })
+  is(result.a.b.x.c, censor)
+  is(result.a.d.x.u.a, 's')
+  is(result.a.d.x.u.b, 's')
+  is(result.a.d.x.u.c, censor)
+  redact.restore(result)
+  is(result.a.b.x.c, 's')
+  is(result.a.d.x.u.a, 's')
+  is(result.a.d.x.u.b, 's')
+  is(result.a.d.x.u.c, 's')
+  end()
+})
