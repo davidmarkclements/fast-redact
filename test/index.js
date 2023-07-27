@@ -1355,3 +1355,87 @@ test('multi level wildcards at nested level inside object with serialize false',
   is(result.a.d.x.u.c, 's')
   end()
 })
+
+test('restores nested wildcard values', ({ end, is }) => {
+  const o = { a: { b: [{ c: [
+    { d: '123' },
+    { d: '456' }
+  ] }] } }
+
+  const censor = 'censor'
+  const paths = ['a.b[*].c[*].d']
+  const redact = fastRedact({ paths, censor, serialize: false })
+
+  redact(o)
+  is(o.a.b[0].c[0].d, censor)
+  is(o.a.b[0].c[1].d, censor)
+  redact.restore(o)
+  is(o.a.b[0].c[0].d, '123')
+  is(o.a.b[0].c[1].d, '456')
+  end()
+})
+
+test('restores multi nested wildcard values', ({ end, is }) => {
+  const o = {
+    a: {
+      b1: {
+        c1: {
+          d1: { e: '123' },
+          d2: { e: '456' }
+        },
+        c2: {
+          d1: { e: '789' },
+          d2: { e: '012' }
+        }
+      },
+      b2: {
+        c1: {
+          d1: { e: '345' },
+          d2: { e: '678' }
+        },
+        c2: {
+          d1: { e: '901' },
+          d2: { e: '234' }
+        }
+      }
+    }
+  }
+
+  const censor = 'censor'
+  const paths = ['a.*.*.*.e']
+  const redact = fastRedact({ paths, censor, serialize: false })
+
+  redact(o)
+  is(o.a.b1.c1.d1.e, censor)
+  is(o.a.b1.c1.d2.e, censor)
+  is(o.a.b1.c2.d1.e, censor)
+  is(o.a.b1.c2.d2.e, censor)
+  is(o.a.b2.c1.d1.e, censor)
+  is(o.a.b2.c1.d2.e, censor)
+  is(o.a.b2.c2.d1.e, censor)
+  is(o.a.b2.c2.d2.e, censor)
+  redact.restore(o)
+  is(o.a.b1.c1.d1.e, '123')
+  is(o.a.b1.c1.d2.e, '456')
+  is(o.a.b1.c2.d1.e, '789')
+  is(o.a.b1.c2.d2.e, '012')
+  is(o.a.b2.c1.d1.e, '345')
+  is(o.a.b2.c1.d2.e, '678')
+  is(o.a.b2.c2.d1.e, '901')
+  is(o.a.b2.c2.d2.e, '234')
+  end()
+})
+
+test('redact multi trailing wildcard', ({ end, is }) => {
+  const o = { a: { b: { c: 'value' } } }
+
+  const censor = 'censor'
+  const paths = ['a.*.*']
+  const redact = fastRedact({ paths, censor, serialize: false })
+
+  redact(o)
+  is(o.a.b.c, censor)
+  redact.restore(o)
+  is(o.a.b.c, 'value')
+  end()
+})
