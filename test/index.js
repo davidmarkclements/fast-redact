@@ -318,6 +318,17 @@ test('masks according to supplied censor function with nested wildcards', ({ end
   end()
 })
 
+test('does not increment secret size', ({ end, is }) => {
+  const redact = fastRedact({ paths: ['*.b'], censor: censorFct, serialize: false })
+  is(redact({ a: { b: '0123456' } }).a.b, 'xxx56')
+  is(redact.secret[''].length, 1)
+  is(redact({ c: { b: '0123456', d: 'pristine' } }).c.b, 'xxx56')
+  is(redact.secret[''].length, 1)
+  is(redact({ c: { b: '0123456', d: 'pristine' } }).c.d, 'pristine')
+  is(redact.secret[''].length, 1)
+  end()
+})
+
 test('masks according to supplied censor-with-path function', ({ end, is }) => {
   const redact = fastRedact({ paths: ['a'], censor: censorWithPath, serialize: false })
   is(redact({ a: '0123456' }).a, 'a xxx56')
