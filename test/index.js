@@ -318,14 +318,17 @@ test('masks according to supplied censor function with nested wildcards', ({ end
   end()
 })
 
-test('does not increment secret size', ({ end, is }) => {
-  const redact = fastRedact({ paths: ['*.b'], censor: censorFct, serialize: false })
+test('does not increment secret size', ({ end, is, same }) => {
+  const redact = fastRedact({ paths: ['x', '*.b'], censor: censorFct, serialize: false })
   is(redact({ a: { b: '0123456' } }).a.b, 'xxx56')
-  is(redact.secret[''].length, 1)
+  same(Object.keys(redact.state.secret), ['x'])
+  const intialSecretSize = JSON.stringify(redact.state.secret).length
   is(redact({ c: { b: '0123456', d: 'pristine' } }).c.b, 'xxx56')
-  is(redact.secret[''].length, 1)
+  same(Object.keys(redact.state.secret), ['x'])
+  is(JSON.stringify(redact.state.secret).length, intialSecretSize)
   is(redact({ c: { b: '0123456', d: 'pristine' } }).c.d, 'pristine')
-  is(redact.secret[''].length, 1)
+  same(Object.keys(redact.state.secret), ['x'])
+  is(JSON.stringify(redact.state.secret).length, intialSecretSize)
   end()
 })
 
@@ -1411,6 +1414,16 @@ test('restores multi nested wildcard values', ({ end, is }) => {
       }
     }
   }
+  const o2 = {
+    a: {
+      b1: {
+        c1: {
+          d1: { e: '123' },
+          d2: { e: '456' }
+        }
+      }
+    }
+  }
 
   const censor = 'censor'
   const paths = ['a.*.*.*.e']
@@ -1434,6 +1447,14 @@ test('restores multi nested wildcard values', ({ end, is }) => {
   is(o.a.b2.c1.d2.e, '678')
   is(o.a.b2.c2.d1.e, '901')
   is(o.a.b2.c2.d2.e, '234')
+
+  redact(o2)
+  is(o2.a.b1.c1.d1.e, censor)
+  is(o2.a.b1.c1.d2.e, censor)
+  redact.restore(o2)
+  is(o2.a.b1.c1.d1.e, '123')
+  is(o2.a.b1.c1.d2.e, '456')
+
   end()
 })
 
