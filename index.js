@@ -40,7 +40,7 @@ function fastRedact (opts = {}) {
 
   const { wildcards, wcLen, secret } = parse({ paths, censor })
 
-  const compileRestore = restorer({ secret, wcLen })
+  const compileRestore = restorer()
   const strict = 'strict' in opts ? opts.strict : true
 
   return redactor({ secret, wcLen, serialize, strict, isCensorFct, censorFctTakesPath }, state({
