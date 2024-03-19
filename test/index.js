@@ -89,6 +89,35 @@ test('returns original value when passed non-object using [strict: false, serial
   end()
 })
 
+test('returns original value when passed non-object at wildcard key', ({ end, doesNotThrow, strictSame }) => {
+  const redactSerializeFalse = fastRedact({
+    paths: ['a.*'],
+    strict: false,
+    serialize: false
+  })
+
+  const primitives = [null, undefined, 'A', 1, false]
+
+  primitives.forEach((a) => {
+    doesNotThrow(() => redactSerializeFalse({ a }))
+    const res = redactSerializeFalse({ a })
+    strictSame(res, { a })
+  })
+
+  end()
+})
+
+test('returns censored values when passed array at wildcard key', ({ end, strictSame }) => {
+  const redactSerializeFalse = fastRedact({
+    paths: ['a.*'],
+    strict: false,
+    serialize: false
+  })
+  const res = redactSerializeFalse({ a: ['redact', 'me'] })
+  strictSame(res.a, [censor, censor])
+  end()
+})
+
 test('throws if a path is not a string', ({ end, throws }) => {
   const invalidTypeMsg = 'fast-redact - Paths must be (non-empty) strings'
   throws((e) => {
