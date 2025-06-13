@@ -3,6 +3,11 @@
   "type": "commonjs",
   "version": "3.5.0",
   "description": "very fast object redaction",
+  "files": [
+    "example/",
+    "lib/",
+    "index.js"
+  ],
   "main": "index.js",
   "scripts": {
     "test": "tap test",
