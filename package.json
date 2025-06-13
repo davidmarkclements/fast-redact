@@ -1,5 +1,6 @@
 {
   "name": "fast-redact",
+  "type": "commonjs",
   "version": "3.5.0",
   "description": "very fast object redaction",
   "main": "index.js",
