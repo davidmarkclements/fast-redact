@@ -1500,3 +1500,43 @@ test('redact multi trailing wildcard', ({ end, is }) => {
   is(o.a.b.c, 'value')
   end()
 })
+
+test('correctly restores keys matching multiple wildcards', ({ end, deepEqual }) => {
+  const redact = fastRedact({
+    paths: ['a[*]', 'a[*].b'],
+    serialize: false
+  })  
+
+  const o = {
+    a: [{ b: 'b' }]
+  }
+
+  redact(o)
+  deepEqual(o.a, ['[REDACTED]'])
+
+  redact.restore(o)
+  deepEqual(o, {
+    a: [{ b: 'b' }]
+  })
+  end()
+})
+
+test('correctly restores keys matching multiple wildcards', ({ end, deepEqual }) => {
+  const redact = fastRedact({
+    paths: ['a[*].b', 'a[*]'],
+    serialize: false
+  })  
+
+  const o = {
+    a: [{ b: 'b' }]
+  }
+
+  redact(o)
+  deepEqual(o.a, ['[REDACTED]'])
+
+  redact.restore(o)
+  deepEqual(o, {
+    a: [{ b: 'b' }]
+  })
+  end()
+})
