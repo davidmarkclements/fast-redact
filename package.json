@@ -4,7 +4,7 @@
   "description": "very fast object redaction",
   "main": "index.js",
   "scripts": {
-    "test": "tap test",
+    "test": "node test/index.js",
     "posttest": "standard index.js 'lib/*.js' 'example/*.js' benchmark/index.js test/index.js | snazzy",
     "cov": "tap --cov test",
     "cov-ui": "tap --coverage-report=html test",

@@ -1500,3 +1500,91 @@ test('redact multi trailing wildcard', ({ end, is }) => {
   is(o.a.b.c, 'value')
   end()
 })
+
+test('does not pollute prototype', ({ end, is }) => {
+  // Ensure Object.prototype is clean before test
+  const beforeTest = Object.prototype.polluted
+
+  // Create object with __proto__ as own property
+  const malicious = Object.create(null)
+  Object.defineProperty(malicious, '__proto__', {
+    value: { polluted: 'attack' },
+    writable: true,
+    enumerable: true,
+    configurable: true
+  })
+  malicious.safe = { data: 'value' }
+
+  const paths = ['*.*']
+  const redact = fastRedact({ paths, censor: '[REDACTED]', serialize: false })
+
+  redact(malicious)
+  redact.restore(malicious)
+
+  // Object.prototype should not be polluted
+  is(Object.prototype.polluted, beforeTest)
+  is(({}).polluted, beforeTest)
+  end()
+})
+
+test('does not pollute prototype with constructor key in wildcard path', ({ end, is }) => {
+  const beforeTest = Object.prototype.polluted
+
+  const malicious = {
+    constructor: { prototype: { polluted: 'attack' } },
+    safe: { data: 'value' }
+  }
+
+  const paths = ['*.*']
+  const redact = fastRedact({ paths, censor: '[REDACTED]', serialize: false })
+
+  redact(malicious)
+  redact.restore(malicious)
+
+  // Object.prototype should not be polluted
+  is(Object.prototype.polluted, beforeTest)
+  is(({}).polluted, beforeTest)
+  end()
+})
+
+test('does not pollute prototype with nested __proto__ in deep wildcard path', ({ end, is }) => {
+  const beforeTest = Object.prototype.polluted
+
+  const malicious = {
+    a: {
+      __proto__: { polluted: 'attack' },
+      b: { c: 'value' }
+    }
+  }
+
+  const paths = ['a.*.*']
+  const redact = fastRedact({ paths, censor: '[REDACTED]', serialize: false })
+
+  redact(malicious)
+  redact.restore(malicious)
+
+  // Object.prototype should not be polluted
+  is(Object.prototype.polluted, beforeTest)
+  is(({}).polluted, beforeTest)
+  end()
+})
+
+test('handles legitimate properties with similar names safely', ({ end, is }) => {
+  const o = {
+    a: {
+      proto: { value: 'safe' },
+      construct: { value: 'also safe' }
+    }
+  }
+
+  const paths = ['a.*.*']
+  const redact = fastRedact({ paths, censor: '[REDACTED]', serialize: false })
+
+  redact(o)
+  is(o.a.proto.value, '[REDACTED]')
+  is(o.a.construct.value, '[REDACTED]')
+  redact.restore(o)
+  is(o.a.proto.value, 'safe')
+  is(o.a.construct.value, 'also safe')
+  end()
+})
