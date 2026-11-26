@@ -1500,3 +1500,41 @@ test('redact multi trailing wildcard', ({ end, is }) => {
   is(o.a.b.c, 'value')
   end()
 })
+
+test('restores a flat wildcard that follows a nested wildcard on the same prefix', ({ end, deepEqual }) => {
+  const redact = fastRedact({
+    paths: ['a[*].b', 'a[*]'],
+    serialize: false
+  })
+
+  const o = {
+    a: [{ b: 'b' }]
+  }
+
+  redact(o)
+  deepEqual(o.a, ['[REDACTED]'])
+
+  redact.restore(o)
+  deepEqual(o, {
+    a: [{ b: 'b' }]
+  })
+  end()
+})
+
+test('restores a nested wildcard and a flat wildcard regardless of path order', ({ end, deepEqual }) => {
+  const forward = fastRedact({ paths: ['a[*]', 'a[*].b'], serialize: false })
+  const reverse = fastRedact({ paths: ['a[*].b', 'a[*]'], serialize: false })
+
+  for (const redact of [forward, reverse]) {
+    const o = { a: [{ b: 'b' }, { b: 'c' }] }
+
+    redact(o)
+    deepEqual(o.a, ['[REDACTED]', '[REDACTED]'])
+
+    redact.restore(o)
+    deepEqual(o, {
+      a: [{ b: 'b' }, { b: 'c' }]
+    })
+  }
+  end()
+})
